@@ -1,0 +1,535 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        
+            <script src="lib/bindings/utils.js"></script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" integrity="sha512-WgxfT5LWjfszlPHXRmBWHkV2eceiWTOBvrKCNbdgDYTHrT2AeLCGbF4sZlZw3UMN3WtL0tGUoIAKsu8mllg/XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js" integrity="sha512-LnvoEWDFrqGHlHmDD2101OrLcbsfkrzoSpvtSQtxK3RMnRV0eOkhhBN2dXHKRrUU8p2DGRTk35n4O8nWSVe1mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            
+                <link href="lib/tom-select/tom-select.css" rel="stylesheet">
+                <script src="lib/tom-select/tom-select.complete.min.js"></script>
+            
+        
+<center>
+<h1></h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+        <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
+          crossorigin="anonymous"
+        />
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
+          crossorigin="anonymous"
+        ></script>
+
+
+        <center>
+          <h1></h1>
+        </center>
+        <style type="text/css">
+
+             #mynetwork {
+                 width: 100%;
+                 height: 800px;
+                 background-color: white;
+                 border: 1px solid lightgray;
+                 position: relative;
+                 float: left;
+             }
+
+             
+
+             
+             #config {
+                 float: left;
+                 width: 400px;
+                 height: 600px;
+             }
+             
+
+             
+        </style>
+    </head>
+
+
+    <body>
+        <div class="card" style="width: 100%">
+            
+                <div id="select-menu" class="card-header">
+                    <div class="row no-gutters">
+                        <div class="col-10 pb-2">
+                            <select
+                            class="form-select"
+                            aria-label="Default select example"
+                            onchange="selectNode([value]);"
+                            id="select-node"
+                            placeholder="Select node..."
+                            >
+                                <option selected>Select a Node by ID</option>
+                                
+                                    <option value="16567">16567</option>
+                                
+                                    <option value="14155">14155</option>
+                                
+                                    <option value="61079">61079</option>
+                                
+                                    <option value="321">321</option>
+                                
+                                    <option value="8422">8422</option>
+                                
+                                    <option value="15541">15541</option>
+                                
+                                    <option value="418">418</option>
+                                
+                                    <option value="81">81</option>
+                                
+                                    <option value="14235">14235</option>
+                                
+                                    <option value="69003">69003</option>
+                                
+                                    <option value="107">107</option>
+                                
+                                    <option value="18042">18042</option>
+                                
+                                    <option value="1760">1760</option>
+                                
+                                    <option value="279">279</option>
+                                
+                                    <option value="13257">13257</option>
+                                
+                                    <option value="14058">14058</option>
+                                
+                                    <option value="729">729</option>
+                                
+                                    <option value="651">651</option>
+                                
+                                    <option value="13121">13121</option>
+                                
+                                    <option value="12332">12332</option>
+                                
+                                    <option value="2572">2572</option>
+                                
+                                    <option value="60923">60923</option>
+                                
+                                    <option value="20563">20563</option>
+                                
+                                    <option value="22846">22846</option>
+                                
+                                    <option value="178">178</option>
+                                
+                                    <option value="29131">29131</option>
+                                
+                                    <option value="15">15</option>
+                                
+                                    <option value="61025">61025</option>
+                                
+                                    <option value="23042">23042</option>
+                                
+                                    <option value="16837">16837</option>
+                                
+                                    <option value="119">119</option>
+                                
+                                    <option value="14083">14083</option>
+                                
+                                    <option value="1709">1709</option>
+                                
+                                    <option value="13261">13261</option>
+                                
+                                    <option value="6574">6574</option>
+                                
+                                    <option value="14427">14427</option>
+                                
+                                    <option value="8555">8555</option>
+                                
+                                    <option value="11181">11181</option>
+                                
+                                    <option value="28224">28224</option>
+                                
+                                    <option value="10074">10074</option>
+                                
+                                    <option value="57">57</option>
+                                
+                                    <option value="3728">3728</option>
+                                
+                                    <option value="10699">10699</option>
+                                
+                                    <option value="60133">60133</option>
+                                
+                                    <option value="14106">14106</option>
+                                
+                                    <option value="10696">10696</option>
+                                
+                                    <option value="7110">7110</option>
+                                
+                                    <option value="25">25</option>
+                                
+                                    <option value="51">51</option>
+                                
+                                    <option value="63916">63916</option>
+                                
+                                    <option value="6125">6125</option>
+                                
+                                    <option value="65243">65243</option>
+                                
+                                    <option value="4536">4536</option>
+                                
+                                    <option value="15411">15411</option>
+                                
+                                    <option value="12260">12260</option>
+                                
+                                    <option value="20032">20032</option>
+                                
+                                    <option value="15067">15067</option>
+                                
+                                    <option value="431">431</option>
+                                
+                                    <option value="25800">25800</option>
+                                
+                                    <option value="14016">14016</option>
+                                
+                                    <option value="65027">65027</option>
+                                
+                                    <option value="23669">23669</option>
+                                
+                                    <option value="4579">4579</option>
+                                
+                                    <option value="4054">4054</option>
+                                
+                                    <option value="1833">1833</option>
+                                
+                                    <option value="14517">14517</option>
+                                
+                                    <option value="23474">23474</option>
+                                
+                                    <option value="774">774</option>
+                                
+                                    <option value="213">213</option>
+                                
+                                    <option value="14310">14310</option>
+                                
+                                    <option value="62038">62038</option>
+                                
+                                    <option value="53009">53009</option>
+                                
+                                    <option value="64565">64565</option>
+                                
+                                    <option value="60141">60141</option>
+                                
+                                    <option value="29159">29159</option>
+                                
+                            </select>
+                        </div>
+                        <div class="col-2 pb-2">
+                            <button type="button" class="btn btn-primary btn-block" onclick="neighbourhoodHighlight({nodes: []});">Reset Selection</button>
+                        </div>
+                    </div>
+                </div>
+            
+            
+              <div id="filter-menu" class="card-header">
+                <div class="row no-gutters">
+                  <div class="col-3 pb-2">
+                    <select
+                            class="form-select"
+                            aria-label="Default select example"
+                            onchange="updateFilter(value, 'item')"
+                            id="select-item"
+                        >
+                        <option value="">Select a network item</option>
+                        <option value="edge">edge</option>
+                        <option value="node">node</option>
+                    </select>
+                  </div>
+                  <div class="col-3 pb-2">
+                    <select
+                            class="form-select"
+                            aria-label="Default select example"
+                            onchange="updateFilter(value, 'property')"
+                            id="select-property"
+                        >
+                        <option value="">Select a property...</option>
+                    </select>
+                  </div>
+                  <div class="col-3 pb-2">
+                    <select
+                            class="form-select"
+                            aria-label="Default select example"
+                            id="select-value"
+                        >
+                        <option value="">Select value(s)...</option>
+                    </select>
+                  </div>
+                  <div class="col-1 pb-2">
+                    <button type="button" class="btn btn-primary btn-block" onclick="highlightFilter(filter);">Filter</button>
+                  </div>
+                  <div class="col-2 pb-2">
+                    <button type="button" class="btn btn-primary btn-block" onclick="clearFilter(true)">Reset Selection</button>
+                  </div>
+                </div>
+              </div>
+            
+            <div id="mynetwork" class="card-body"></div>
+        </div>
+
+        
+        
+            <div id="config"></div>
+        
+
+        <script type="text/javascript">
+
+              // initialize global variables.
+              var edges;
+              var nodes;
+              var allNodes;
+              var allEdges;
+              var nodeColors;
+              var originalNodes;
+              var network;
+              var container;
+              var options, data;
+              var filter = {
+                  item : '',
+                  property : '',
+                  value : []
+              };
+
+              
+                  new TomSelect("#select-node",{
+                      create: false,
+                      sortField: {
+                          field: "text",
+                          direction: "asc"
+                      }
+                  });
+              
+
+              
+                  // explicitly using onItemAdd and this function as we need to save multiple values
+                  let updateValueFilter = function() {
+                      return function () {
+                      filter['value'].push(arguments[0])
+                      }
+                  }
+
+                  let valueControl = new TomSelect("#select-value",{
+                      maxItems: null,
+                      valueField: 'id',
+                      labelField: 'title',
+                      searchField: 'title',
+                      create: false,
+                      sortField: {
+                          field: "text",
+                          direction: "asc"
+                      },
+                      onItemAdd: updateValueFilter()
+                  });
+
+                  let addValues = function() {
+                      return function () {
+                          // clear the current value options and add the selected attribute values
+                          // tom-select handles duplicates
+                          let selectedProperty = arguments[0];
+                          valueControl.clear();
+                          valueControl.clearOptions();
+                          filter['value'] = []
+                          if (filter['item'] === 'node') {
+                              for (let each in allNodes) {
+                                  valueControl.addOption({
+                                      id:allNodes[each][selectedProperty],
+                                      title:allNodes[each][selectedProperty]
+                                  })
+                              }
+                          }
+                          else if (filter['item'] === 'edge') {
+                              for (let each in allEdges) {
+                                  valueControl.addOption({
+                                      id:allEdges[each][selectedProperty],
+                                      title:allEdges[each][selectedProperty]
+                                  })
+                              }
+                          }
+                      }
+                  };
+
+                  let propControl = new TomSelect("#select-property",{
+                      valueField: 'id',
+                      labelField: 'title',
+                      searchField: 'title',
+                      create: false,
+                      sortField: {
+                          field: "text",
+                          direction: "asc"
+                      },
+                      onItemAdd: addValues()
+                  });
+
+                  let addProperties = function() {
+                      return function () {
+                          // loops through the selected network item and adds the attributes to dropdown
+                          // tom-select handles duplicates
+                          clearFilter(false)
+                          if (arguments[0] === 'edge') {
+                              for (let each in allEdges) {
+                                  if (allEdges.hasOwnProperty(each)) {
+                                      for (let eachProp in allEdges[each]) {
+                                          if (allEdges[each].hasOwnProperty(eachProp)) {
+                                              propControl.addOption({id: eachProp, title: eachProp})
+                                          }
+                                      }
+                                  }
+                              }
+                          }
+                          else if (arguments[0] === 'node') {
+                              for (let each in allNodes) {
+                                  if (allNodes.hasOwnProperty(each)) {
+                                      for (let eachProp in allNodes[each]) {
+                                          if (allNodes[each].hasOwnProperty(eachProp)
+                                              && (eachProp !== 'hidden' && eachProp !== 'savedLabel'
+                                                  && eachProp !== 'hiddenLabel')) {
+                                              propControl.addOption({id: eachProp, title: eachProp})
+
+                                          }
+                                      }
+                                  }
+                              }
+                          }
+                      }
+                  };
+
+                  let itemControl = new TomSelect("#select-item",{
+                      create: false,
+                      sortField:{
+                          field: "text",
+                          direction: "asc"
+                      },
+                      onItemAdd: addProperties()
+                  });
+
+                  function clearFilter(reset) {
+                      // utility function to clear all the selected filter options
+                      // if reset is set to true, the existing filter will be removed
+                      // else, only the dropdown options are cleared
+                      propControl.clear();
+                      propControl.clearOptions();
+                      valueControl.clear();
+                      valueControl.clearOptions();
+                      filter = {
+                          item : '',
+                          property : '',
+                          value : []
+                      }
+                      if (reset) {
+                          itemControl.clear();
+                          filterHighlight({nodes: []})
+                      }
+                  }
+
+                  function updateFilter(value, key) {
+                      // key could be 'item' or 'property' and value is as selected in dropdown
+                      filter[key] = value
+                  }
+
+              
+
+              // This method is responsible for drawing the graph, returns the drawn network
+              function drawGraph() {
+                  var container = document.getElementById('mynetwork');
+
+                  
+
+                  // parsing and collecting nodes and edges from the python
+                  nodes = new vis.DataSet([{"color": "purple", "font": {"color": "black"}, "id": "16567", "label": "Abnormal hemoglobin", "shape": "dot", "title": "Node ID: 16567\u003cbr\u003eType: effect/phenotype\u003cbr\u003eName: Abnormal hemoglobin\u003cbr\u003eSource: HPO"}, {"color": "purple", "font": {"color": "black"}, "id": "14155", "label": "Diarrhea", "shape": "dot", "title": "Node ID: 14155\u003cbr\u003eType: effect/phenotype\u003cbr\u003eName: Diarrhea\u003cbr\u003eSource: HPO"}, {"color": "purple", "font": {"color": "black"}, "id": "61079", "label": "Short nose", "shape": "dot", "title": "Node ID: 61079\u003cbr\u003eType: effect/phenotype\u003cbr\u003eName: Short nose\u003cbr\u003eSource: HPO"}, {"color": "goldenrod", "font": {"color": "black"}, "id": "321", "label": "ENSG00000101405", "shape": "dot", "title": "Node ID: 321\u003cbr\u003eType: gene/protein\u003cbr\u003eName: ENSG00000101405\u003cbr\u003eSource: NCBI"}, {"color": "goldenrod", "font": {"color": "black"}, "id": "8422", "label": "ENSG00000163961", "shape": "dot", "title": "Node ID: 8422\u003cbr\u003eType: gene/protein\u003cbr\u003eName: ENSG00000163961\u003cbr\u003eSource: NCBI"}, {"color": "purple", "font": {"color": "black"}, "id": "15541", "label": "Abnormal blood glucose concentration", "shape": "dot", "title": "Node ID: 15541\u003cbr\u003eType: effect/phenotype\u003cbr\u003eName: Abnormal blood glucose concentration\u003cbr\u003eSource: HPO"}, {"color": "goldenrod", "font": {"color": "black"}, "id": "418", "label": "ENSG00000100030", "shape": "dot", "title": "Node ID: 418\u003cbr\u003eType: gene/protein\u003cbr\u003eName: ENSG00000100030\u003cbr\u003eSource: NCBI"}, {"color": "goldenrod", "font": {"color": "black"}, "id": "81", "label": "ENSG00000104964", "shape": "dot", "title": "Node ID: 81\u003cbr\u003eType: gene/protein\u003cbr\u003eName: ENSG00000104964\u003cbr\u003eSource: NCBI"}, {"color": "purple", "font": {"color": "black"}, "id": "14235", "label": "Hyperkinetic movements", "shape": "dot", "title": "Node ID: 14235\u003cbr\u003eType: effect/phenotype\u003cbr\u003eName: Hyperkinetic movements\u003cbr\u003eSource: HPO"}, {"color": "purple", "font": {"color": "black"}, "id": "69003", "label": "Elevated hemoglobin A1c", "shape": "dot", "title": "Node ID: 69003\u003cbr\u003eType: effect/phenotype\u003cbr\u003eName: Elevated hemoglobin A1c\u003cbr\u003eSource: HPO"}, {"color": "goldenrod", "font": {"color": "black"}, "id": "107", "label": "ENSG00000116030", "shape": "dot", "title": "Node ID: 107\u003cbr\u003eType: gene/protein\u003cbr\u003eName: ENSG00000116030\u003cbr\u003eSource: NCBI"}, {"color": "purple", "font": {"color": "black"}, "id": "18042", "label": "Hyperglycemia", "shape": "dot", "title": "Node ID: 18042\u003cbr\u003eType: effect/phenotype\u003cbr\u003eName: Hyperglycemia\u003cbr\u003eSource: HPO"}, {"color": "goldenrod", "font": {"color": "black"}, "id": "1760", "label": "ENSG00000115138", "shape": "dot", "title": "Node ID: 1760\u003cbr\u003eType: gene/protein\u003cbr\u003eName: ENSG00000115138\u003cbr\u003eSource: NCBI"}, {"color": "goldenrod", "font": {"color": "black"}, "id": "279", "label": "ENSG00000101076", "shape": "dot", "title": "Node ID: 279\u003cbr\u003eType: gene/protein\u003cbr\u003eName: ENSG00000101076\u003cbr\u003eSource: NCBI"}, {"color": "goldenrod", "font": {"color": "black"}, "id": "13257", "label": "ENSG00000006071", "shape": "dot", "title": "Node ID: 13257\u003cbr\u003eType: gene/protein\u003cbr\u003eName: ENSG00000006071\u003cbr\u003eSource: NCBI"}, {"color": "purple", "font": {"color": "black"}, "id": "14058", "label": "Abnormal bleeding", "shape": "dot", "title": "Node ID: 14058\u003cbr\u003eType: effect/phenotype\u003cbr\u003eName: Abnormal bleeding\u003cbr\u003eSource: HPO"}, {"color": "goldenrod", "font": {"color": "black"}, "id": "729", "label": "ENSG00000168610", "shape": "dot", "title": "Node ID: 729\u003cbr\u003eType: gene/protein\u003cbr\u003eName: ENSG00000168610\u003cbr\u003eSource: NCBI"}, {"color": "goldenrod", "font": {"color": "black"}, "id": "651", "label": "ENSG00000072062", "shape": "dot", "title": "Node ID: 651\u003cbr\u003eType: gene/protein\u003cbr\u003eName: ENSG00000072062\u003cbr\u003eSource: NCBI"}, {"color": "goldenrod", "font": {"color": "black"}, "id": "13121", "label": "ENSG00000156831", "shape": "dot", "title": "Node ID: 13121\u003cbr\u003eType: gene/protein\u003cbr\u003eName: ENSG00000156831\u003cbr\u003eSource: NCBI"}, {"color": "goldenrod", "font": {"color": "black"}, "id": "12332", "label": "ENSG00000102174", "shape": "dot", "title": "Node ID: 12332\u003cbr\u003eType: gene/protein\u003cbr\u003eName: ENSG00000102174\u003cbr\u003eSource: NCBI"}, {"color": "goldenrod", "font": {"color": "black"}, "id": "2572", "label": "ENSG00000122026", "shape": "dot", "title": "Node ID: 2572\u003cbr\u003eType: gene/protein\u003cbr\u003eName: ENSG00000122026\u003cbr\u003eSource: NCBI"}, {"color": "purple", "font": {"color": "black"}, "id": "60923", "label": "Downturned corners of mouth", "shape": "dot", "title": "Node ID: 60923\u003cbr\u003eType: effect/phenotype\u003cbr\u003eName: Downturned corners of mouth\u003cbr\u003eSource: HPO"}, {"color": "red", "font": {"color": "black"}, "id": "20563", "label": "DEND syndrome", "shape": "dot", "title": "Node ID: 20563\u003cbr\u003eType: disease\u003cbr\u003eName: DEND syndrome\u003cbr\u003eSource: MONDO"}, {"color": "red", "font": {"color": "black"}, "id": "22846", "label": "primary familial polycythemia due to EPO receptor mutation", "shape": "dot", "title": "Node ID: 22846\u003cbr\u003eType: disease\u003cbr\u003eName: primary familial polycythemia due to EPO receptor mutation\u003cbr\u003eSource: MONDO"}, {"color": "goldenrod", "font": {"color": "black"}, "id": "178", "label": "ENSG00000100393", "shape": "dot", "title": "Node ID: 178\u003cbr\u003eType: gene/protein\u003cbr\u003eName: ENSG00000100393\u003cbr\u003eSource: NCBI"}, {"color": "red", "font": {"color": "black"}, "id": "29131", "label": "Dent disease", "shape": "dot", "title": "Node ID: 29131\u003cbr\u003eType: disease\u003cbr\u003eName: Dent disease\u003cbr\u003eSource: MONDO"}, {"color": "goldenrod", "font": {"color": "black"}, "id": "15", "label": "ENSG00000120738", "shape": "dot", "title": "Node ID: 15\u003cbr\u003eType: gene/protein\u003cbr\u003eName: ENSG00000120738\u003cbr\u003eSource: NCBI"}, {"color": "purple", "font": {"color": "black"}, "id": "61025", "label": "Glycosuria", "shape": "dot", "title": "Node ID: 61025\u003cbr\u003eType: effect/phenotype\u003cbr\u003eName: Glycosuria\u003cbr\u003eSource: HPO"}, {"color": "red", "font": {"color": "black"}, "id": "23042", "label": "neurofibromatosis type 1", "shape": "dot", "title": "Node ID: 23042\u003cbr\u003eType: disease\u003cbr\u003eName: neurofibromatosis type 1\u003cbr\u003eSource: MONDO"}, {"color": "purple", "font": {"color": "black"}, "id": "16837", "label": "Hyperactivity", "shape": "dot", "title": "Node ID: 16837\u003cbr\u003eType: effect/phenotype\u003cbr\u003eName: Hyperactivity\u003cbr\u003eSource: HPO"}, {"color": "goldenrod", "font": {"color": "black"}, "id": "119", "label": "ENSG00000134954", "shape": "dot", "title": "Node ID: 119\u003cbr\u003eType: gene/protein\u003cbr\u003eName: ENSG00000134954\u003cbr\u003eSource: NCBI"}, {"color": "purple", "font": {"color": "black"}, "id": "14083", "label": "Proteinuria", "shape": "dot", "title": "Node ID: 14083\u003cbr\u003eType: effect/phenotype\u003cbr\u003eName: Proteinuria\u003cbr\u003eSource: HPO"}, {"color": "goldenrod", "font": {"color": "black"}, "id": "1709", "label": "ENSG00000154764", "shape": "dot", "title": "Node ID: 1709\u003cbr\u003eType: gene/protein\u003cbr\u003eName: ENSG00000154764\u003cbr\u003eSource: NCBI"}, {"color": "goldenrod", "font": {"color": "black"}, "id": "13261", "label": "ENSG00000126217", "shape": "dot", "title": "Node ID: 13261\u003cbr\u003eType: gene/protein\u003cbr\u003eName: ENSG00000126217\u003cbr\u003eSource: NCBI"}, {"color": "goldenrod", "font": {"color": "black"}, "id": "6574", "label": "ENSG00000101096", "shape": "dot", "title": "Node ID: 6574\u003cbr\u003eType: gene/protein\u003cbr\u003eName: ENSG00000101096\u003cbr\u003eSource: NCBI"}, {"color": "purple", "font": {"color": "black"}, "id": "14427", "label": "Obesity", "shape": "dot", "title": "Node ID: 14427\u003cbr\u003eType: effect/phenotype\u003cbr\u003eName: Obesity\u003cbr\u003eSource: HPO"}, {"color": "goldenrod", "font": {"color": "black"}, "id": "8555", "label": "ENSG00000161798", "shape": "dot", "title": "Node ID: 8555\u003cbr\u003eType: gene/protein\u003cbr\u003eName: ENSG00000161798\u003cbr\u003eSource: NCBI"}, {"color": "goldenrod", "font": {"color": "black"}, "id": "11181", "label": "ENSG00000124256", "shape": "dot", "title": "Node ID: 11181\u003cbr\u003eType: gene/protein\u003cbr\u003eName: ENSG00000124256\u003cbr\u003eSource: NCBI"}, {"color": "red", "font": {"color": "black"}, "id": "28224", "label": "distal monosomy 12q", "shape": "dot", "title": "Node ID: 28224\u003cbr\u003eType: disease\u003cbr\u003eName: distal monosomy 12q\u003cbr\u003eSource: MONDO"}, {"color": "goldenrod", "font": {"color": "black"}, "id": "10074", "label": "ENSG00000172059", "shape": "dot", "title": "Node ID: 10074\u003cbr\u003eType: gene/protein\u003cbr\u003eName: ENSG00000172059\u003cbr\u003eSource: NCBI"}, {"color": "goldenrod", "font": {"color": "black"}, "id": "57", "label": "ENSG00000164438", "shape": "dot", "title": "Node ID: 57\u003cbr\u003eType: gene/protein\u003cbr\u003eName: ENSG00000164438\u003cbr\u003eSource: NCBI"}, {"color": "goldenrod", "font": {"color": "black"}, "id": "3728", "label": "ENSG00000116001", "shape": "dot", "title": "Node ID: 3728\u003cbr\u003eType: gene/protein\u003cbr\u003eName: ENSG00000116001\u003cbr\u003eSource: NCBI"}, {"color": "goldenrod", "font": {"color": "black"}, "id": "10699", "label": "ENSG00000111670", "shape": "dot", "title": "Node ID: 10699\u003cbr\u003eType: gene/protein\u003cbr\u003eName: ENSG00000111670\u003cbr\u003eSource: NCBI"}, {"color": "purple", "font": {"color": "black"}, "id": "60133", "label": "Nephropathy", "shape": "dot", "title": "Node ID: 60133\u003cbr\u003eType: effect/phenotype\u003cbr\u003eName: Nephropathy\u003cbr\u003eSource: HPO"}, {"color": "purple", "font": {"color": "black"}, "id": "14106", "label": "Edema", "shape": "dot", "title": "Node ID: 14106\u003cbr\u003eType: effect/phenotype\u003cbr\u003eName: Edema\u003cbr\u003eSource: HPO"}, {"color": "goldenrod", "font": {"color": "black"}, "id": "10696", "label": "ENSG00000130675", "shape": "dot", "title": "Node ID: 10696\u003cbr\u003eType: gene/protein\u003cbr\u003eName: ENSG00000130675\u003cbr\u003eSource: NCBI"}, {"color": "goldenrod", "font": {"color": "black"}, "id": "7110", "label": "ENSG00000136574", "shape": "dot", "title": "Node ID: 7110\u003cbr\u003eType: gene/protein\u003cbr\u003eName: ENSG00000136574\u003cbr\u003eSource: NCBI"}, {"color": "goldenrod", "font": {"color": "black"}, "id": "25", "label": "ENSG00000136997", "shape": "dot", "title": "Node ID: 25\u003cbr\u003eType: gene/protein\u003cbr\u003eName: ENSG00000136997\u003cbr\u003eSource: NCBI"}, {"color": "goldenrod", "font": {"color": "black"}, "id": "51", "label": "ENSG00000185591", "shape": "dot", "title": "Node ID: 51\u003cbr\u003eType: gene/protein\u003cbr\u003eName: ENSG00000185591\u003cbr\u003eSource: NCBI"}, {"color": "purple", "font": {"color": "black"}, "id": "63916", "label": "Aplasia of the nose", "shape": "dot", "title": "Node ID: 63916\u003cbr\u003eType: effect/phenotype\u003cbr\u003eName: Aplasia of the nose\u003cbr\u003eSource: HPO"}, {"color": "goldenrod", "font": {"color": "black"}, "id": "6125", "label": "ENSG00000079337", "shape": "dot", "title": "Node ID: 6125\u003cbr\u003eType: gene/protein\u003cbr\u003eName: ENSG00000079337\u003cbr\u003eSource: NCBI"}, {"color": "purple", "font": {"color": "black"}, "id": "65243", "label": "Microphakia", "shape": "dot", "title": "Node ID: 65243\u003cbr\u003eType: effect/phenotype\u003cbr\u003eName: Microphakia\u003cbr\u003eSource: HPO"}, {"color": "goldenrod", "font": {"color": "black"}, "id": "4536", "label": "ENSG00000171105", "shape": "dot", "title": "Node ID: 4536\u003cbr\u003eType: gene/protein\u003cbr\u003eName: ENSG00000171105\u003cbr\u003eSource: NCBI"}, {"color": "purple", "font": {"color": "black"}, "id": "15411", "label": "Cardiomyopathy", "shape": "dot", "title": "Node ID: 15411\u003cbr\u003eType: effect/phenotype\u003cbr\u003eName: Cardiomyopathy\u003cbr\u003eSource: HPO"}, {"color": "goldenrod", "font": {"color": "black"}, "id": "12260", "label": "ENSG00000109101", "shape": "dot", "title": "Node ID: 12260\u003cbr\u003eType: gene/protein\u003cbr\u003eName: ENSG00000109101\u003cbr\u003eSource: NCBI"}, {"color": "red", "font": {"color": "black"}, "id": "20032", "label": "renal cysts and diabetes syndrome", "shape": "dot", "title": "Node ID: 20032\u003cbr\u003eType: disease\u003cbr\u003eName: renal cysts and diabetes syndrome\u003cbr\u003eSource: MONDO"}, {"color": "purple", "font": {"color": "black"}, "id": "15067", "label": "Glucose intolerance", "shape": "dot", "title": "Node ID: 15067\u003cbr\u003eType: effect/phenotype\u003cbr\u003eName: Glucose intolerance\u003cbr\u003eSource: HPO"}, {"color": "goldenrod", "font": {"color": "black"}, "id": "431", "label": "ENSG00000136238", "shape": "dot", "title": "Node ID: 431\u003cbr\u003eType: gene/protein\u003cbr\u003eName: ENSG00000136238\u003cbr\u003eSource: NCBI"}, {"color": "red", "font": {"color": "black"}, "id": "25800", "label": "Seckel syndrome 10", "shape": "dot", "title": "Node ID: 25800\u003cbr\u003eType: disease\u003cbr\u003eName: Seckel syndrome 10\u003cbr\u003eSource: MONDO"}, {"color": "purple", "font": {"color": "black"}, "id": "14016", "label": "Seizure", "shape": "dot", "title": "Node ID: 14016\u003cbr\u003eType: effect/phenotype\u003cbr\u003eName: Seizure\u003cbr\u003eSource: HPO"}, {"color": "purple", "font": {"color": "black"}, "id": "65027", "label": "Laryngeal edema", "shape": "dot", "title": "Node ID: 65027\u003cbr\u003eType: effect/phenotype\u003cbr\u003eName: Laryngeal edema\u003cbr\u003eSource: HPO"}, {"color": "red", "font": {"color": "black"}, "id": "23669", "label": "holoprosencephaly 13, X-linked", "shape": "dot", "title": "Node ID: 23669\u003cbr\u003eType: disease\u003cbr\u003eName: holoprosencephaly 13, X-linked\u003cbr\u003eSource: MONDO"}, {"color": "goldenrod", "font": {"color": "black"}, "id": "4579", "label": "ENSG00000049768", "shape": "dot", "title": "Node ID: 4579\u003cbr\u003eType: gene/protein\u003cbr\u003eName: ENSG00000049768\u003cbr\u003eSource: NCBI"}, {"color": "goldenrod", "font": {"color": "black"}, "id": "4054", "label": "ENSG00000108559", "shape": "dot", "title": "Node ID: 4054\u003cbr\u003eType: gene/protein\u003cbr\u003eName: ENSG00000108559\u003cbr\u003eSource: NCBI"}, {"color": "goldenrod", "font": {"color": "black"}, "id": "1833", "label": "ENSG00000135625", "shape": "dot", "title": "Node ID: 1833\u003cbr\u003eType: gene/protein\u003cbr\u003eName: ENSG00000135625\u003cbr\u003eSource: NCBI"}, {"color": "purple", "font": {"color": "black"}, "id": "14517", "label": "Maturity-onset diabetes of the young", "shape": "dot", "title": "Node ID: 14517\u003cbr\u003eType: effect/phenotype\u003cbr\u003eName: Maturity-onset diabetes of the young\u003cbr\u003eSource: HPO"}, {"color": "red", "font": {"color": "black"}, "id": "23474", "label": "nail-patella syndrome", "shape": "dot", "title": "Node ID: 23474\u003cbr\u003eType: disease\u003cbr\u003eName: nail-patella syndrome\u003cbr\u003eSource: MONDO"}, {"color": "goldenrod", "font": {"color": "black"}, "id": "774", "label": "ENSG00000175029", "shape": "dot", "title": "Node ID: 774\u003cbr\u003eType: gene/protein\u003cbr\u003eName: ENSG00000175029\u003cbr\u003eSource: NCBI"}, {"color": "goldenrod", "font": {"color": "black"}, "id": "213", "label": "ENSG00000254647", "shape": "dot", "title": "Node ID: 213\u003cbr\u003eType: gene/protein\u003cbr\u003eName: ENSG00000254647\u003cbr\u003eSource: NCBI"}, {"color": "purple", "font": {"color": "black"}, "id": "14310", "label": "Muscular hypotonia of the trunk", "shape": "dot", "title": "Node ID: 14310\u003cbr\u003eType: effect/phenotype\u003cbr\u003eName: Muscular hypotonia of the trunk\u003cbr\u003eSource: HPO"}, {"color": "purple", "font": {"color": "black"}, "id": "62038", "label": "Chronic myelogenous leukemia", "shape": "dot", "title": "Node ID: 62038\u003cbr\u003eType: effect/phenotype\u003cbr\u003eName: Chronic myelogenous leukemia\u003cbr\u003eSource: HPO"}, {"color": "goldenrod", "font": {"color": "black"}, "id": "53009", "label": "ENSG00000185002", "shape": "dot", "title": "Node ID: 53009\u003cbr\u003eType: gene/protein\u003cbr\u003eName: ENSG00000185002\u003cbr\u003eSource: NCBI"}, {"color": "purple", "font": {"color": "black"}, "id": "64565", "label": "Mild global developmental delay", "shape": "dot", "title": "Node ID: 64565\u003cbr\u003eType: effect/phenotype\u003cbr\u003eName: Mild global developmental delay\u003cbr\u003eSource: HPO"}, {"color": "purple", "font": {"color": "black"}, "id": "60141", "label": "Menorrhagia", "shape": "dot", "title": "Node ID: 60141\u003cbr\u003eType: effect/phenotype\u003cbr\u003eName: Menorrhagia\u003cbr\u003eSource: HPO"}, {"color": "red", "font": {"color": "black"}, "id": "29159", "label": "beta-thalassemia major", "shape": "dot", "title": "Node ID: 29159\u003cbr\u003eType: disease\u003cbr\u003eName: beta-thalassemia major\u003cbr\u003eSource: MONDO"}]);
+                  edges = new vis.DataSet([{"color": "orange", "from": "16567", "title": "Relation: phenotype_phenotype\u003cbr\u003eDisplay Relation: parent-child", "to": "69003"}, {"color": "green", "from": "16567", "title": "Relation: disease_phenotype_positive\u003cbr\u003eDisplay Relation: phenotype present", "to": "22846"}, {"color": "green", "from": "16567", "title": "Relation: disease_phenotype_positive\u003cbr\u003eDisplay Relation: phenotype present", "to": "29159"}, {"color": "green", "from": "14155", "title": "Relation: disease_phenotype_positive\u003cbr\u003eDisplay Relation: phenotype present", "to": "29159"}, {"color": "green", "from": "61079", "title": "Relation: disease_phenotype_positive\u003cbr\u003eDisplay Relation: phenotype present", "to": "20563"}, {"color": "gray", "from": "321", "title": "Relation: phenotype_protein\u003cbr\u003eDisplay Relation: associated with", "to": "14016"}, {"color": "gray", "from": "321", "title": "Relation: phenotype_protein\u003cbr\u003eDisplay Relation: associated with", "to": "14106"}, {"color": "gray", "from": "321", "title": "Relation: phenotype_protein\u003cbr\u003eDisplay Relation: associated with", "to": "14235"}, {"color": "gray", "from": "8422", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "15"}, {"color": "gray", "from": "8422", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "107"}, {"color": "orange", "from": "15541", "title": "Relation: phenotype_phenotype\u003cbr\u003eDisplay Relation: parent-child", "to": "18042"}, {"color": "gray", "from": "418", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "15"}, {"color": "gray", "from": "418", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "25"}, {"color": "gray", "from": "418", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "51"}, {"color": "gray", "from": "418", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "81"}, {"color": "gray", "from": "418", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "119"}, {"color": "gray", "from": "418", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "178"}, {"color": "gray", "from": "418", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "279"}, {"color": "gray", "from": "418", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "7110"}, {"color": "gray", "from": "418", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "4579"}, {"color": "gray", "from": "418", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "729"}, {"color": "gray", "from": "418", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "10699"}, {"color": "gray", "from": "418", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "10074"}, {"color": "gray", "from": "418", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "4536"}, {"color": "gray", "from": "81", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "53009"}, {"color": "gray", "from": "81", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "774"}, {"color": "gray", "from": "81", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "12260"}, {"color": "orange", "from": "69003", "title": "Relation: phenotype_phenotype\u003cbr\u003eDisplay Relation: parent-child", "to": "14517"}, {"color": "green", "from": "69003", "title": "Relation: disease_phenotype_positive\u003cbr\u003eDisplay Relation: phenotype present", "to": "20563"}, {"color": "green", "from": "69003", "title": "Relation: disease_phenotype_positive\u003cbr\u003eDisplay Relation: phenotype present", "to": "25800"}, {"color": "gray", "from": "107", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "15"}, {"color": "gray", "from": "107", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "51"}, {"color": "gray", "from": "107", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "119"}, {"color": "gray", "from": "107", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "13121"}, {"color": "gray", "from": "107", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "431"}, {"color": "gray", "from": "107", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "4054"}, {"color": "gray", "from": "107", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "2572"}, {"color": "orange", "from": "18042", "title": "Relation: phenotype_phenotype\u003cbr\u003eDisplay Relation: parent-child", "to": "14517"}, {"color": "green", "from": "18042", "title": "Relation: disease_phenotype_positive\u003cbr\u003eDisplay Relation: phenotype present", "to": "20563"}, {"color": "gray", "from": "1760", "title": "Relation: phenotype_protein\u003cbr\u003eDisplay Relation: associated with", "to": "14016"}, {"color": "gray", "from": "1760", "title": "Relation: phenotype_protein\u003cbr\u003eDisplay Relation: associated with", "to": "14083"}, {"color": "gray", "from": "1760", "title": "Relation: phenotype_protein\u003cbr\u003eDisplay Relation: associated with", "to": "14106"}, {"color": "gray", "from": "1760", "title": "Relation: phenotype_protein\u003cbr\u003eDisplay Relation: associated with", "to": "14427"}, {"color": "gray", "from": "279", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "25"}, {"color": "gray", "from": "279", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "51"}, {"color": "gray", "from": "279", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "119"}, {"color": "gray", "from": "279", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "178"}, {"color": "gray", "from": "279", "title": "Relation: phenotype_protein\u003cbr\u003eDisplay Relation: associated with", "to": "14517"}, {"color": "gray", "from": "279", "title": "Relation: disease_protein\u003cbr\u003eDisplay Relation: associated with", "to": "20032"}, {"color": "gray", "from": "13257", "title": "Relation: phenotype_protein\u003cbr\u003eDisplay Relation: associated with", "to": "14517"}, {"color": "gray", "from": "13257", "title": "Relation: disease_protein\u003cbr\u003eDisplay Relation: associated with", "to": "20563"}, {"color": "orange", "from": "14058", "title": "Relation: phenotype_phenotype\u003cbr\u003eDisplay Relation: parent-child", "to": "60141"}, {"color": "green", "from": "14058", "title": "Relation: disease_phenotype_positive\u003cbr\u003eDisplay Relation: phenotype present", "to": "22846"}, {"color": "gray", "from": "729", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "15"}, {"color": "gray", "from": "729", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "25"}, {"color": "gray", "from": "729", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "51"}, {"color": "gray", "from": "729", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "119"}, {"color": "gray", "from": "729", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "178"}, {"color": "gray", "from": "729", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "431"}, {"color": "gray", "from": "729", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "4579"}, {"color": "gray", "from": "729", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "4536"}, {"color": "gray", "from": "729", "title": "Relation: disease_protein\u003cbr\u003eDisplay Relation: associated with", "to": "20563"}, {"color": "gray", "from": "651", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "15"}, {"color": "gray", "from": "651", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "51"}, {"color": "gray", "from": "651", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "119"}, {"color": "gray", "from": "651", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "178"}, {"color": "gray", "from": "651", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "8555"}, {"color": "gray", "from": "651", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "7110"}, {"color": "gray", "from": "13121", "title": "Relation: disease_protein\u003cbr\u003eDisplay Relation: associated with", "to": "25800"}, {"color": "gray", "from": "12332", "title": "Relation: disease_protein\u003cbr\u003eDisplay Relation: associated with", "to": "29131"}, {"color": "gray", "from": "2572", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "25"}, {"color": "green", "from": "60923", "title": "Relation: disease_phenotype_positive\u003cbr\u003eDisplay Relation: phenotype present", "to": "20563"}, {"color": "gray", "from": "20563", "title": "Relation: disease_protein\u003cbr\u003eDisplay Relation: associated with", "to": "213"}, {"color": "gray", "from": "20563", "title": "Relation: disease_protein\u003cbr\u003eDisplay Relation: associated with", "to": "4536"}, {"color": "gray", "from": "20563", "title": "Relation: disease_protein\u003cbr\u003eDisplay Relation: associated with", "to": "4579"}, {"color": "gray", "from": "20563", "title": "Relation: disease_protein\u003cbr\u003eDisplay Relation: associated with", "to": "7110"}, {"color": "gray", "from": "20563", "title": "Relation: disease_protein\u003cbr\u003eDisplay Relation: associated with", "to": "10696"}, {"color": "green", "from": "20563", "title": "Relation: disease_phenotype_positive\u003cbr\u003eDisplay Relation: phenotype present", "to": "14016"}, {"color": "green", "from": "20563", "title": "Relation: disease_phenotype_positive\u003cbr\u003eDisplay Relation: phenotype present", "to": "14310"}, {"color": "green", "from": "20563", "title": "Relation: disease_phenotype_positive\u003cbr\u003eDisplay Relation: phenotype present", "to": "64565"}, {"color": "gray", "from": "20563", "title": "Relation: disease_protein\u003cbr\u003eDisplay Relation: associated with", "to": "53009"}, {"color": "gray", "from": "178", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "15"}, {"color": "gray", "from": "178", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "25"}, {"color": "gray", "from": "178", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "51"}, {"color": "gray", "from": "178", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "119"}, {"color": "gray", "from": "178", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "774"}, {"color": "gray", "from": "178", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "10074"}, {"color": "gray", "from": "178", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "6574"}, {"color": "gray", "from": "178", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "3728"}, {"color": "gray", "from": "178", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "1709"}, {"color": "gray", "from": "178", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "4579"}, {"color": "gray", "from": "178", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "7110"}, {"color": "gray", "from": "178", "title": "Relation: phenotype_protein\u003cbr\u003eDisplay Relation: associated with", "to": "14427"}, {"color": "green", "from": "29131", "title": "Relation: disease_phenotype_positive\u003cbr\u003eDisplay Relation: phenotype present", "to": "14083"}, {"color": "green", "from": "29131", "title": "Relation: disease_phenotype_positive\u003cbr\u003eDisplay Relation: phenotype present", "to": "61025"}, {"color": "green", "from": "29131", "title": "Relation: disease_phenotype_positive\u003cbr\u003eDisplay Relation: phenotype present", "to": "64565"}, {"color": "gray", "from": "15", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "10074"}, {"color": "gray", "from": "15", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "119"}, {"color": "gray", "from": "15", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "6574"}, {"color": "gray", "from": "15", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "51"}, {"color": "orange", "from": "61025", "title": "Relation: phenotype_phenotype\u003cbr\u003eDisplay Relation: parent-child", "to": "14517"}, {"color": "green", "from": "61025", "title": "Relation: disease_phenotype_positive\u003cbr\u003eDisplay Relation: phenotype present", "to": "20032"}, {"color": "green", "from": "61025", "title": "Relation: disease_phenotype_positive\u003cbr\u003eDisplay Relation: phenotype present", "to": "25800"}, {"color": "green", "from": "23042", "title": "Relation: disease_phenotype_positive\u003cbr\u003eDisplay Relation: phenotype present", "to": "14016"}, {"color": "green", "from": "23042", "title": "Relation: disease_phenotype_positive\u003cbr\u003eDisplay Relation: phenotype present", "to": "62038"}, {"color": "green", "from": "16837", "title": "Relation: disease_phenotype_positive\u003cbr\u003eDisplay Relation: phenotype present", "to": "28224"}, {"color": "gray", "from": "119", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "51"}, {"color": "gray", "from": "119", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "57"}, {"color": "gray", "from": "119", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "4536"}, {"color": "gray", "from": "119", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "1709"}, {"color": "gray", "from": "119", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "4579"}, {"color": "gray", "from": "119", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "431"}, {"color": "green", "from": "14083", "title": "Relation: disease_phenotype_positive\u003cbr\u003eDisplay Relation: phenotype present", "to": "23474"}, {"color": "green", "from": "14083", "title": "Relation: disease_phenotype_positive\u003cbr\u003eDisplay Relation: phenotype present", "to": "20032"}, {"color": "gray", "from": "13261", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "431"}, {"color": "gray", "from": "6574", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "1833"}, {"color": "gray", "from": "6574", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "4579"}, {"color": "gray", "from": "14427", "title": "Relation: phenotype_protein\u003cbr\u003eDisplay Relation: associated with", "to": "213"}, {"color": "gray", "from": "14427", "title": "Relation: phenotype_protein\u003cbr\u003eDisplay Relation: associated with", "to": "6125"}, {"color": "orange", "from": "14427", "title": "Relation: phenotype_phenotype\u003cbr\u003eDisplay Relation: parent-child", "to": "14517"}, {"color": "gray", "from": "14427", "title": "Relation: disease_phenotype_negative\u003cbr\u003eDisplay Relation: phenotype absent", "to": "20032"}, {"color": "green", "from": "14427", "title": "Relation: disease_phenotype_positive\u003cbr\u003eDisplay Relation: phenotype present", "to": "28224"}, {"color": "gray", "from": "11181", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "774"}, {"color": "green", "from": "28224", "title": "Relation: disease_phenotype_positive\u003cbr\u003eDisplay Relation: phenotype present", "to": "14517"}, {"color": "gray", "from": "10074", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "213"}, {"color": "gray", "from": "10074", "title": "Relation: phenotype_protein\u003cbr\u003eDisplay Relation: associated with", "to": "14517"}, {"color": "gray", "from": "57", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "51"}, {"color": "orange", "from": "60133", "title": "Relation: phenotype_phenotype\u003cbr\u003eDisplay Relation: parent-child", "to": "14517"}, {"color": "green", "from": "60133", "title": "Relation: disease_phenotype_positive\u003cbr\u003eDisplay Relation: phenotype present", "to": "23474"}, {"color": "gray", "from": "14106", "title": "Relation: phenotype_protein\u003cbr\u003eDisplay Relation: associated with", "to": "213"}, {"color": "orange", "from": "14106", "title": "Relation: phenotype_phenotype\u003cbr\u003eDisplay Relation: parent-child", "to": "65027"}, {"color": "gray", "from": "10696", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "774"}, {"color": "gray", "from": "7110", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "51"}, {"color": "gray", "from": "7110", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "774"}, {"color": "gray", "from": "25", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "4536"}, {"color": "gray", "from": "25", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "51"}, {"color": "gray", "from": "25", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "4579"}, {"color": "green", "from": "63916", "title": "Relation: disease_phenotype_positive\u003cbr\u003eDisplay Relation: phenotype present", "to": "23669"}, {"color": "green", "from": "65243", "title": "Relation: disease_phenotype_positive\u003cbr\u003eDisplay Relation: phenotype present", "to": "23474"}, {"color": "gray", "from": "4536", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "213"}, {"color": "gray", "from": "4536", "title": "Relation: protein_protein\u003cbr\u003eDisplay Relation: ppi", "to": "4579"}, {"color": "green", "from": "15411", "title": "Relation: disease_phenotype_positive\u003cbr\u003eDisplay Relation: phenotype present", "to": "29159"}, {"color": "green", "from": "20032", "title": "Relation: disease_phenotype_positive\u003cbr\u003eDisplay Relation: phenotype present", "to": "14517"}, {"color": "green", "from": "20032", "title": "Relation: disease_phenotype_positive\u003cbr\u003eDisplay Relation: phenotype present", "to": "15067"}, {"color": "orange", "from": "15067", "title": "Relation: phenotype_phenotype\u003cbr\u003eDisplay Relation: parent-child", "to": "14517"}, {"color": "green", "from": "15067", "title": "Relation: disease_phenotype_positive\u003cbr\u003eDisplay Relation: phenotype present", "to": "25800"}, {"color": "gray", "from": "14016", "title": "Relation: phenotype_protein\u003cbr\u003eDisplay Relation: associated with", "to": "213"}, {"color": "green", "from": "14016", "title": "Relation: disease_phenotype_positive\u003cbr\u003eDisplay Relation: phenotype present", "to": "23669"}, {"color": "gray", "from": "14517", "title": "Relation: phenotype_protein\u003cbr\u003eDisplay Relation: associated with", "to": "213"}]);
+
+                  nodeColors = {};
+                  allNodes = nodes.get({ returnType: "Object" });
+                  for (nodeId in allNodes) {
+                    nodeColors[nodeId] = allNodes[nodeId].color;
+                  }
+                  allEdges = edges.get({ returnType: "Object" });
+                  // adding nodes and edges to the graph
+                  data = {nodes: nodes, edges: edges};
+
+                  var options = {
+    "configure": {
+        "enabled": true,
+        "filter": [
+            "physics"
+        ]
+    },
+    "edges": {
+        "color": {
+            "inherit": true
+        },
+        "smooth": {
+            "enabled": true,
+            "type": "dynamic"
+        }
+    },
+    "interaction": {
+        "dragNodes": true,
+        "hideEdgesOnDrag": false,
+        "hideNodesOnDrag": false
+    },
+    "physics": {
+        "enabled": true,
+        "stabilization": {
+            "enabled": true,
+            "fit": true,
+            "iterations": 1000,
+            "onlyDynamicEdges": false,
+            "updateInterval": 50
+        }
+    }
+};
+
+                  
+
+
+                  
+                  // if this network requires displaying the configure window,
+                  // put it in its div
+                  options.configure["container"] = document.getElementById("config");
+                  
+
+                  network = new vis.Network(container, data, options);
+
+                  
+
+                  
+                    network.on("selectNode", neighbourhoodHighlight);
+                  
+
+                  
+
+
+                  
+
+                  return network;
+
+              }
+              drawGraph();
+        </script>
+    
+    <div style='position: absolute; bottom: 10px; left: 10px; background-color: white; 
+                border: 1px solid black; padding: 10px; z-index: 1000; font-family: Arial; font-size: 13px;'>
+        <b>Legend:</b><br>
+        <div style='color: goldenrod;'>● Gene/Protein</div>
+        <div style='color: red;'>● Disease</div>
+        <div style='color: purple;'>● Effect/Phenotype</div>
+        <div style='color: blue;'>● Anatomy</div>
+        <hr>
+        <b>Edge Types:</b><br>
+        <div style='color: green;'>━━ Disease-Phenotype Positive</div>
+        <div style='color: orange;'>━━ Phenotype-Phenotype</div>
+        <div style='color: gray;'>━━ Default</div>
+    </div>
+    </body>
+</html>
