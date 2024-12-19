@@ -5,6 +5,10 @@ from sklearn.metrics import accuracy_score
 from models import GiG
 from datasets.dataloader import DataLoader
 import pickle
+import os
+import networkx as nx
+import matplotlib.pyplot as plt
+import numpy as np
 
 # Step 1: Configuration
 config = {
@@ -52,11 +56,49 @@ def map_labels(dataset):
             graph.y = torch.tensor([gene_to_class[gene] for gene in graph.true_gene_ids], dtype=torch.long)
 
 
+def visualize_learned_graph(adj, predictions, labels, misc_indices, epoch, output_path="./population_graphs"):
+    adj_np = adj.detach().cpu().numpy()
+
+    misclassified = (predictions != labels).nonzero()[0]
+
+    # Define node colors
+    node_colors = []
+    for i, label in enumerate(labels):
+        if i in misclassified:
+            node_colors.append("red")  # Red for misclassified nodes
+        else:
+            node_colors.append("green")
+
+    # Create graph from filtered adjacency matrix
+    G = nx.from_numpy_array(adj_np)
+    # Add node labels as attributes (optional)
+    if labels is not None:
+        for i, label in enumerate(labels):
+            G.nodes[i]["label"] = label
+
+    with open(os.path.join(output_dir, f"learned_graph_epoch_{epoch}.pkl"), "wb") as f:
+        pickle.dump(G, f)
+    # Visualize graph
+    plt.figure(figsize=(10, 8))
+    nx.draw(
+        G,
+        node_color=node_colors[:len(G.nodes())],  # Ensure the color matches the node count
+        with_labels=True,
+        edge_color="gray",
+        cmap=plt.cm.Blues
+    )
+    plt.title(f"Learned Population Graph with Misclassified Nodes Highlighted Epoch {epoch}")
+
+    # Save the graph
+    os.makedirs(output_path, exist_ok=True)
+    plt.savefig(os.path.join(output_path, f"learned_graph_with_misclassified_nodes_epoch_{epoch}.png"))
+    plt.show()
+
+
 map_labels(train_pg_subgraph)
 map_labels(val_pg_subgraph)
 map_labels(test_pg_subgraph)
 config['output_dim'] = len(gene_to_class)
-
 
 batch_size = 32
 train_loader = DataLoader(train_pg_subgraph, batch_size=batch_size, shuffle=True)
@@ -70,47 +112,72 @@ model = GiG(config).to(device)
 
 criterion = torch.nn.CrossEntropyLoss()
 optimizer = Adam(model.parameters(), lr=0.001, weight_decay=1e-5)
+output_dir = "./population_graphs"
+os.makedirs(output_dir, exist_ok=True)
 
 
 def train_one_epoch(model, train_loader, optimizer, criterion, device):
     model.train()
     total_loss = 0
-    for batch in train_loader:
+    adj = None
+    batch_idx = 0
+    for batch_idx, batch in enumerate(train_loader):
         batch = batch.to(device)
+
+        batch.y.to(device)
         optimizer.zero_grad()
-        predictions, _, _, _, _ = model(batch)  # Forward pass
-        """
-        preds = predictions.argmax(dim=1).cpu().numpy()
-        labels = batch.y.cpu().numpy()
-        print(f"Predictions: {preds}")
-        print(f"True Labels: {labels}")
-    """
+        predictions, _, _, _, adj = model(batch)  # Forward pass
+
         loss = criterion(predictions, batch.y)  # Compute loss
         loss.backward()  # Backpropagation
         optimizer.step()  # Update weights
+
         total_loss += loss.item()
+    print(total_loss)
+    # Save the adjacency matrix
+    adj_np = adj.detach().cpu().numpy()
+    save_path = os.path.join(output_dir, f"epoch_{epoch}_batch_{batch_idx}.npy")
+    np.save(save_path, adj_np)
+    # Optional: Visualize the graph
+    G = nx.from_numpy_array(adj_np)
+    plt.figure(figsize=(10, 8))
+    nx.draw(G, with_labels=True, node_color="lightblue", edge_color="gray")
+    plt.title(f"Population Graph - Epoch {epoch}, Batch {batch_idx}")
+    plt.savefig(os.path.join(output_dir, f"graph_epoch_{epoch}_batch_{batch_idx}.png"))
+    plt.close()
     return total_loss / len(train_loader)
 
 
-def evaluate(model, loader, device):
+def evaluate(model, loader, device, epoch):
     model.eval()
     all_preds = []
     all_labels = []
+    misclassified_indices = []
     with torch.no_grad():
         for batch in loader:
             batch = batch.to(device)
-            predictions, _, _, _, _ = model(batch)
-            preds = predictions.argmax(dim=1).cpu().numpy()
+            predictions, _, _, _, adj = model(batch)
+            predicted_classes = predictions.argmax(dim=1).cpu().numpy()
             labels = batch.y.cpu().numpy()
-            all_preds.extend(preds)
+            # Compare predictions and labels
+            misclassified = (predicted_classes != labels).nonzero()[0]
+            misclassified_indices.extend(misclassified.tolist())  # Collect misclassified indices
+
+
+            all_preds.extend(predicted_classes)
             all_labels.extend(labels)
-    return accuracy_score(all_labels, all_preds)
+
+            # Calculate overall accuracy
+        accuracy = accuracy_score(all_labels, all_preds)
+        visualize_learned_graph(adj, predicted_classes, labels, misclassified_indices, epoch)
+        return accuracy, misclassified_indices
 
 
-epochs = 3
+epochs = 30
 for epoch in range(epochs):
     train_loss = train_one_epoch(model, train_loader, optimizer, criterion, device)
-    val_accuracy = evaluate(model, val_loader, device)
+
+    val_accuracy, misclassified_indices = evaluate(model, val_loader, device, epoch)
     print(f"Epoch {epoch + 1}/{epochs}, Loss: {train_loss:.4f}, Validation Accuracy: {val_accuracy:.4f}")
 
 # test the model
