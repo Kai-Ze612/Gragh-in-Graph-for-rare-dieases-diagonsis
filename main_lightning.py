@@ -94,14 +94,13 @@ class GiGModel(LightningModule):
         out = self(batch)
         batch.y = batch.y.view(out.shape[0], -1)
 
-        bce_loss = F.binary_cross_entropy_with_logits(out, batch.y.float())  # Use BCEWithLogitsLoss
+        bce_loss = F.binary_cross_entropy_with_logits(out, batch.y.float())
         # Compute mean rank loss
         mean_rank_loss = self.calculate_mean_rank_loss(out, batch.y)
 
         # Combine losses
         total_loss = bce_loss + self.lambda_rank * mean_rank_loss
 
-        # Log losses
         self.log('train_loss', bce_loss, batch_size=batch.x.shape[0], prog_bar=True)
         self.log('mean_rank_loss', mean_rank_loss, batch_size=batch.x.shape[0], prog_bar=True)
         self.log('total_loss', total_loss, batch_size=batch.x.shape[0], prog_bar=True)
@@ -115,7 +114,6 @@ class GiGModel(LightningModule):
         bce_loss = F.binary_cross_entropy_with_logits(out, batch.y.float())
         self.log('val_loss', bce_loss, batch_size=batch.x.shape[0], prog_bar=True)
 
-        # Compute mean rank loss for logging
         mean_rank = self.calculate_mean_rank_loss(out, batch.y)
         self.log('val_mean_rank', mean_rank, batch_size=batch.x.shape[0], prog_bar=True)
 
@@ -127,16 +125,13 @@ class GiGModel(LightningModule):
         bce_loss = F.binary_cross_entropy_with_logits(out, batch.y.float())
         self.log('test_loss', bce_loss, batch_size=batch.x.shape[0], prog_bar=True)
 
-        # Compute mean rank for evaluation
         mean_rank = self.calculate_mean_rank_loss(out, batch.y)
         self.log('test_mean_rank', mean_rank, batch_size=batch.x.shape[0], prog_bar=True)
 
         return {"test_loss": bce_loss, "test_mean_rank": mean_rank}
 
     def calculate_mean_rank_loss(self, predictions, labels):
-        """
-        Calculates a differentiable approximation of the mean rank loss.
-        """
+
         batch_size, num_classes = predictions.size()
         loss = 0.0
 
@@ -150,33 +145,6 @@ class GiGModel(LightningModule):
             loss += rank_loss
 
         return loss / batch_size  # Average rank loss across the batch
-
-    def calculate_mean_rank(self, predictions, labels):
-        """
-        Computes the mean rank of the true labels in the prediction scores.
-
-        Args:
-            predictions (torch.Tensor): Shape [batch_size, num_classes], predicted scores.
-            labels (torch.Tensor): Shape [batch_size, num_classes], one-hot true labels.
-
-        Returns:
-            float: Mean rank of the true labels.
-        """
-        batch_size, num_classes = predictions.size()
-        ranks = []
-
-        for i in range(batch_size):
-            # Get the scores and true label index
-            scores = predictions[i]
-            true_label_idx = labels[i].nonzero(as_tuple=True)[0].item()
-
-            # Rank the scores in descending order and find the rank of the true label
-            sorted_indices = torch.argsort(scores, descending=True)
-            true_label_rank = (sorted_indices == true_label_idx).nonzero(as_tuple=True)[0].item() + 1
-            ranks.append(true_label_rank)
-
-        mean_rank = sum(ranks) / len(ranks)
-        return mean_rank
 
     def configure_optimizers(self):
         return torch.optim.Adam(self.parameters(), lr=self.hparams.config['lr'])
