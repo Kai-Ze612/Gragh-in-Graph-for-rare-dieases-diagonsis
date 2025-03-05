@@ -25,19 +25,27 @@ class NodeConvolution(Module):
         super().__init__()
         self.config = config
         self.conv_list = ModuleList()
+        self.projection_layers = ModuleList()
+        projection_dims = [config["num_node_features"]] + config.get("projection_layers", [128, 128])
+        for i in range(len(projection_dims) - 1):
+            self.projection_layers.append(Linear(projection_dims[i], projection_dims[i + 1]))
+            self.projection_layers.append(LeakyReLU(negative_slope=0.01))  #
+
         if self.config["node_level_module"] == "GIN":
-            self.conv_list.append(GIN(in_channels=config["num_node_features"],
-                                      hidden_channels=config["node_layers"][0],
-                                      num_layers=self.config["node_level_hidden_layers_number"],
-                                      out_channels=config["node_layers"][-1]))
+            self.conv_list.append(GIN(
+                in_channels=projection_dims[-1],
+                hidden_channels=config["node_layers"][0],
+                num_layers=self.config["node_level_hidden_layers_number"],
+                out_channels=config["node_layers"][-1]
+            ))
         elif self.config["node_level_module"] == "GraphConv":
-            self.conv_list.append(GraphConv(config["num_node_features"], config["node_layers"][0]))
-            for i in np.arange(1, len(config["node_layers"])):
+            self.conv_list.append(GraphConv(projection_dims[-1], config["node_layers"][0]))
+            for i in range(1, len(config["node_layers"])):
                 self.conv_list.append(GraphConv(config["node_layers"][i - 1], config["node_layers"][i]))
             self.activation = LeakyReLU(negative_slope=0.01)
 
         else:
-            print("Not implemented node level layer")
+            raise ValueError("Not implemented node level layer!")
 
         if config["pooling"] == 'add':
             self.pooling = global_add_pool
@@ -55,6 +63,10 @@ class NodeConvolution(Module):
         print("Total nodes in batch:", total_nodes_in_batch)
         print("edge_index max:", data.edge_index.max().item(), "Expected max:", total_nodes_in_batch - 1)
         '''
+
+        for layer in self.projection_layers:
+            x = layer(x)
+
         if 'edge_weights' in data and self.config["node_level_module"] != "GIN":
             x = self.conv_list[0](x, edge_index, data.edge_weights)
         elif 'edge_attr' in data and self.config["node_level_module"] != "GIN":
