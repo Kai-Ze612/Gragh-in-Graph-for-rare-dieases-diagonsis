@@ -8,6 +8,7 @@ from torch_geometric.data import Data
 import pickle
 import os
 import datetime
+from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 
 def optimized_collate_fn(batch):
@@ -74,8 +75,8 @@ config = {
     "input_dim": 128,  # Dimension of node embeddings
     "output_dim": 2405,  # Multi-class classification
     "node_level_module": "GraphConv",  # "GraphConv", "GIN"
-    "projection_layers": [256, 128, 128],
-    "node_layers": [128, 128],  # Hidden layers for node-level processing
+    "projection_layers": [256, 128],
+    "node_layers": [128, 64],  # Hidden layers for node-level processing
     "pooling": "add",  # "add" or "mean"
     "population_level_module": "LGL",  # "LGL", "LGLKL"
     "population_layers": [128, 128],  # Layers for population-level module
@@ -87,7 +88,7 @@ config = {
     "gnn_aggr": "mean",
     "classifier_layers": [128, 64, 2405],  # 2405 classes
     "batch_size": 128,
-    "epochs": 20,
+    "epochs": 30,
     "lr": 1e-3,
     "device": "cuda" if torch.cuda.is_available() else "cpu",
     "wandb_project": "true_gene-classification",
@@ -159,7 +160,8 @@ def train(model, train_loader, val_loader, config):
     device = config["device"]
     model = model.to(device)
     criterion = nn.CrossEntropyLoss()  # Multi-class classification
-    optimizer = optim.Adam(model.parameters(), lr=config["lr"])
+    optimizer = optim.Adam(model.parameters(), lr=config["lr"], weight_decay=1e-4)
+    scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=5, verbose=True)  # 🔹 Reduce LR on plateau
 
     #
     run_id = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -203,7 +205,7 @@ def train(model, train_loader, val_loader, config):
         print(f" Model saved at: {model_path}")
         '''
 
-
+        scheduler.step(val_loss)
         wandb.log({"epoch": epoch+1, "train_loss": avg_train_loss, "train_acc": train_acc,
                    "val_loss": val_loss, "val_acc": val_acc})
 

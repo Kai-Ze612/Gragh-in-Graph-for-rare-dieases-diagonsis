@@ -6,6 +6,7 @@ from torch_geometric.nn.pool.glob import global_add_pool, global_mean_pool
 from torch_geometric.nn import GraphConv, EdgeConv, GCNConv, GATConv, SAGEConv
 from torch_geometric.utils import dense_to_sparse
 from torch_geometric.nn.models.basic_gnn import GIN
+from torch.nn import Dropout
 
 try:
     from torch_cluster import knn
@@ -186,12 +187,14 @@ class Classifier(Module):
     def __init__(self, config, input_size, output_dim):
         super().__init__()
         self.config = config
+        dropout_rate = 0.4
         if len(config["classifier_layers"]) > 0:
-            fc_list = [Linear(input_size, config["classifier_layers"][0])]
+            fc_list = [Linear(input_size, config["classifier_layers"][0]),LeakyReLU(negative_slope=0.01),
+                       Dropout(p=dropout_rate)]
             for i in np.arange(1, len(config["classifier_layers"])):
-                fc_list.append(LeakyReLU(negative_slope=0.01))
                 fc_list.append(Linear(config["classifier_layers"][i - 1], config["classifier_layers"][i]))
-            fc_list.append(LeakyReLU(negative_slope=0.01))
+                fc_list.append(LeakyReLU(negative_slope=0.01))
+                fc_list.append(Dropout(p=dropout_rate))
             fc_list.append(Linear(config["classifier_layers"][- 1], output_dim))
         else:
             fc_list = [Linear(input_size, output_dim)]
