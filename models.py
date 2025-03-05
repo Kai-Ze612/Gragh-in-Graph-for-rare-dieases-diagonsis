@@ -31,6 +31,7 @@ class NodeConvolution(Module):
         for i in range(len(projection_dims) - 1):
             self.projection_layers.append(Linear(projection_dims[i], projection_dims[i + 1]))
             self.projection_layers.append(LeakyReLU(negative_slope=0.01))  #
+            self.projection_layers.append(Dropout(p=0.5))
 
         if self.config["node_level_module"] == "GIN":
             self.conv_list.append(GIN(
@@ -187,7 +188,7 @@ class Classifier(Module):
     def __init__(self, config, input_size, output_dim):
         super().__init__()
         self.config = config
-        dropout_rate = 0.4
+        dropout_rate = 0.5
         if len(config["classifier_layers"]) > 0:
             fc_list = [Linear(input_size, config["classifier_layers"][0]),LeakyReLU(negative_slope=0.01),
                        Dropout(p=dropout_rate)]

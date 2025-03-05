@@ -75,7 +75,7 @@ config = {
     "input_dim": 128,  # Dimension of node embeddings
     "output_dim": 2405,  # Multi-class classification
     "node_level_module": "GraphConv",  # "GraphConv", "GIN"
-    "projection_layers": [256, 128],
+    "projection_layers": [256, 128, 128],
     "node_layers": [128, 64],  # Hidden layers for node-level processing
     "pooling": "add",  # "add" or "mean"
     "population_level_module": "LGL",  # "LGL", "LGLKL"
@@ -88,7 +88,7 @@ config = {
     "gnn_aggr": "mean",
     "classifier_layers": [128, 64, 2405],  # 2405 classes
     "batch_size": 128,
-    "epochs": 30,
+    "epochs": 20,
     "lr": 1e-3,
     "device": "cuda" if torch.cuda.is_available() else "cpu",
     "wandb_project": "true_gene-classification",
@@ -104,6 +104,11 @@ class GeneClassifier(nn.Module):
         # Node Embeddings for `original_node_id`
         self.global_node_embedding = nn.Embedding(
             num_embeddings=config["num_embeddings"], embedding_dim=config["input_dim"]
+        )
+        self.embedding_projection = nn.Sequential(
+            nn.Linear(config["input_dim"], 128),
+            nn.LeakyReLU(),
+            nn.Linear(128, config["input_dim"])
         )
         self.model = GiG(config)
 
@@ -129,7 +134,7 @@ class GeneClassifier(nn.Module):
         data.original_ids = torch.clamp(data.original_ids, min=0, max=self.global_node_embedding.num_embeddings - 1)
 
         #  Compute per-graph embeddings (batch_size, embedding_dim)
-        graph_embeddings = self.global_node_embedding(data.original_ids)
+        graph_embeddings = self.embedding_projection(self.global_node_embedding(data.original_ids))
 
         #  Expand per-graph embeddings to match total nodes in batch
         data.x = graph_embeddings[data.batch]  # Expands to (total_nodes_in_batch, embedding_dim)
