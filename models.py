@@ -7,6 +7,7 @@ from torch_geometric.nn import GraphConv, EdgeConv, GCNConv, GATConv, SAGEConv
 from torch_geometric.utils import dense_to_sparse
 from torch_geometric.nn.models.basic_gnn import GIN
 from torch.nn import Dropout
+from torch.nn import BatchNorm1d
 
 try:
     from torch_cluster import knn
@@ -51,10 +52,10 @@ class NodeConvolution(Module):
         elif self.config["node_level_module"] == "GAT":
             self.conv_list.append(GATConv(
                 in_channels=projection_dims[-1],
-                out_channels=config["node_layers"][0] // 4,  # Divide output dim among heads
-                heads=4,  # Multi-head attention
-                concat=True,  # Concatenate outputs from heads
-                dropout=0.5  # Apply dropout to attention weights
+                out_channels=config["node_layers"][0],  #
+                heads=2,  # Multi-head attention
+                concat=False,  # Concatenate outputs from heads
+                dropout=0.3  # Apply dropout to attention weights
             ))
             for i in range(1, len(config["node_layers"])):
                 self.conv_list.append(GATConv(
@@ -62,7 +63,7 @@ class NodeConvolution(Module):
                     out_channels=config["node_layers"][i] // 4,  # Divide output dim among heads
                     heads=4,
                     concat=True,
-                    dropout=0.5
+                    dropout=0.3
                 ))
             self.activation = LeakyReLU(negative_slope=0.01)
 

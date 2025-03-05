@@ -76,20 +76,20 @@ config = {
     "output_dim": 2405,  # Multi-class classification
     "node_level_module": "GAT",  # "GraphConv", "GIN"
     "projection_layers": [256, 128],
-    "node_layers": [128, 64],  # Hidden layers for node-level processing
+    "node_layers": [64],  # Hidden layers for node-level processing
     "pooling": "add",  # "add" or "mean"
     "population_level_module": "LGL",  # "LGL", "LGLKL"
     "population_layers": [128, 128],  # Layers for population-level module
     "temp": 1.0,  # Learnable temperature
     "theta": 1.0,  # Learnable threshold
-    "gnn_type": "GraphConv",  # "GraphConv", "GAT", "SAGEConv", etc.
+    "gnn_type": "GAT",  # "GraphConv", "GAT", "SAGEConv", etc.
     "gnn_layers": [128, 128],  # GNN layers
 
     "gnn_aggr": "mean",
     "classifier_layers": [128, 64, 2405],  # 2405 classes
     "batch_size": 128,
     "epochs": 20,
-    "lr": 1e-3,
+    "lr": 2e-3,
     "device": "cuda" if torch.cuda.is_available() else "cpu",
     "wandb_project": "true_gene-classification",
     "num_embeddings": 105220  # Total unique node IDs
