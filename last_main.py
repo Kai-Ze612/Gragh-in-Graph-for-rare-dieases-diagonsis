@@ -75,7 +75,7 @@ config = {
     "output_dim": 2405,  # Multi-class classification
     "node_level_module": "GraphConv",  # "GraphConv", "GIN"
     "node_layers": [128, 128],  # Hidden layers for node-level processing
-    "pooling": "mean",  # Options: "add" or "mean"
+    "pooling": "add",  # "add" or "mean"
     "population_level_module": "LGL",  # "LGL", "LGLKL"
     "population_layers": [128, 128],  # Layers for population-level module
     "temp": 1.0,  # Learnable temperature
@@ -251,7 +251,7 @@ if __name__ == "__main__":
     with open("./DataLast/corrected_datasets/test_shuffled_y.pkl", "rb") as f:
         test_dataset = pickle.load(f)
 
-    train_dataset = train_dataset[0:640]
+    train_dataset = train_dataset[0:6400]
 
     # %%
     # Create DataLoaders
