@@ -74,8 +74,8 @@ config = {
     "num_node_features": 128,
     "input_dim": 128,  # Dimension of node embeddings
     "output_dim": 2405,  # Multi-class classification
-    "node_level_module": "GraphConv",  # "GraphConv", "GIN"
-    "projection_layers": [256, 128, 128],
+    "node_level_module": "GAT",  # "GraphConv", "GIN"
+    "projection_layers": [256, 128],
     "node_layers": [128, 64],  # Hidden layers for node-level processing
     "pooling": "add",  # "add" or "mean"
     "population_level_module": "LGL",  # "LGL", "LGLKL"

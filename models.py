@@ -21,6 +21,8 @@ def DGCNN_layer(in_size, out_size, k=10):
 
 
 # NODE-LEVEL MODULES
+from torch_geometric.nn import GATConv
+
 class NodeConvolution(Module):
     def __init__(self, config):
         super().__init__()
@@ -30,7 +32,7 @@ class NodeConvolution(Module):
         projection_dims = [config["num_node_features"]] + config.get("projection_layers", [128, 128])
         for i in range(len(projection_dims) - 1):
             self.projection_layers.append(Linear(projection_dims[i], projection_dims[i + 1]))
-            self.projection_layers.append(LeakyReLU(negative_slope=0.01))  #
+            self.projection_layers.append(LeakyReLU(negative_slope=0.01))
             self.projection_layers.append(Dropout(p=0.5))
 
         if self.config["node_level_module"] == "GIN":
@@ -46,8 +48,26 @@ class NodeConvolution(Module):
                 self.conv_list.append(GraphConv(config["node_layers"][i - 1], config["node_layers"][i]))
             self.activation = LeakyReLU(negative_slope=0.01)
 
+        elif self.config["node_level_module"] == "GAT":
+            self.conv_list.append(GATConv(
+                in_channels=projection_dims[-1],
+                out_channels=config["node_layers"][0] // 4,  # Divide output dim among heads
+                heads=4,  # Multi-head attention
+                concat=True,  # Concatenate outputs from heads
+                dropout=0.5  # Apply dropout to attention weights
+            ))
+            for i in range(1, len(config["node_layers"])):
+                self.conv_list.append(GATConv(
+                    in_channels=config["node_layers"][i - 1],
+                    out_channels=config["node_layers"][i] // 4,  # Divide output dim among heads
+                    heads=4,
+                    concat=True,
+                    dropout=0.5
+                ))
+            self.activation = LeakyReLU(negative_slope=0.01)
+
         else:
-            raise ValueError("Not implemented node level layer!")
+            raise ValueError("Not implemented node-level module!")
 
         if config["pooling"] == 'add':
             self.pooling = global_add_pool
@@ -59,17 +79,18 @@ class NodeConvolution(Module):
     def forward(self, data):
         edge_index = data.edge_index
         x = data.x.float()
-        total_nodes_in_batch = data.batch.max().item() + 1  # Correct total nodes
-        '''
-        print("Before Conv Layer:")
-        print("Total nodes in batch:", total_nodes_in_batch)
-        print("edge_index max:", data.edge_index.max().item(), "Expected max:", total_nodes_in_batch - 1)
-        '''
 
         for layer in self.projection_layers:
             x = layer(x)
 
-        if 'edge_weights' in data and self.config["node_level_module"] != "GIN":
+        if self.config["node_level_module"] == "GAT":
+            if 'edge_attr' in data:
+                edge_attr_proj = torch.mean(data.edge_attr, dim=1, keepdim=True)  # Aggregate edge attributes
+                x = self.conv_list[0](x, edge_index, edge_attr_proj)
+            else:
+                x = self.conv_list[0](x, edge_index)
+
+        elif 'edge_weights' in data and self.config["node_level_module"] != "GIN":
             x = self.conv_list[0](x, edge_index, data.edge_weights)
         elif 'edge_attr' in data and self.config["node_level_module"] != "GIN":
             x = self.conv_list[0](x, edge_index, torch.argmax(data.edge_attr, dim=1))
