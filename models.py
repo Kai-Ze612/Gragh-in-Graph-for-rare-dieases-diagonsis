@@ -12,11 +12,14 @@ try:
 except ImportError:
     knn = None
 
+
 def DGCNN_layer(in_size, out_size, k=10):
     DGCNN_conv = Sequential(Linear(2 * in_size, out_size), LeakyReLU())
 
     return DynamicEdgeConv(DGCNN_conv, k=k)  # 10 #change to fix graph!!!!
-#NODE-LEVEL MODULES
+
+
+# NODE-LEVEL MODULES
 class NodeConvolution(Module):
     def __init__(self, config):
         super().__init__()
@@ -46,13 +49,19 @@ class NodeConvolution(Module):
     def forward(self, data):
         edge_index = data.edge_index
         x = data.x.float()
-        if 'edge_weights' in data and self.config["node_level_module"]!="GIN":
+        total_nodes_in_batch = data.batch.max().item() + 1  # Correct total nodes
+        '''
+        print("Before Conv Layer:")
+        print("Total nodes in batch:", total_nodes_in_batch)
+        print("edge_index max:", data.edge_index.max().item(), "Expected max:", total_nodes_in_batch - 1)
+        '''
+        if 'edge_weights' in data and self.config["node_level_module"] != "GIN":
             x = self.conv_list[0](x, edge_index, data.edge_weights)
-        elif 'edge_attr' in data and self.config["node_level_module"]!="GIN":
+        elif 'edge_attr' in data and self.config["node_level_module"] != "GIN":
             x = self.conv_list[0](x, edge_index, torch.argmax(data.edge_attr, dim=1))
         else:
             x = self.conv_list[0](x, edge_index)
-        if self.config["node_level_module"]!="GIN":
+        if self.config["node_level_module"] != "GIN":
             x = self.activation(x)
 
         for conv in self.conv_list[1:]:
@@ -61,8 +70,10 @@ class NodeConvolution(Module):
                 x = self.activation(x)
         x = self.pooling(x, data.batch)
         return x
-#POPULATION-LEVEL MODULES
-#cdgm
+
+
+# POPULATION-LEVEL MODULES
+# cdgm
 class LGL(Module):
     def __init__(self, config, input_size):
         super().__init__()
@@ -82,7 +93,6 @@ class LGL(Module):
         if config["population_level_module"] == "LGLKL":
             self.mu = torch.nn.Parameter(torch.tensor(config["mu"], requires_grad=True))
             self.sigma = torch.nn.Parameter(torch.tensor(config["sigma"], requires_grad=True))
-
 
     def forward(self, x):
 
@@ -107,7 +117,9 @@ class LGL(Module):
         adj = torch.sigmoid(adj)
         edge_index, edge_weight = dense_to_sparse(adj)
         return x, edge_index, edge_weight, adj
-#GNN
+
+
+# GNN
 class GNN(Module):
     def __init__(self, config, input_size):
         super().__init__()
@@ -131,10 +143,11 @@ class GNN(Module):
                 layer = SAGEConv(config["gnn_layers"][i - 1], config["gnn_layers"][i], aggr=config["gnn_aggr"])
                 self.graph_conv.append(layer)
         elif config["gnn_type"] == "EdgeConv":
-            self.graph_conv.append(EdgeConv(Sequential(Linear(2 *input_size, config["gnn_layers"][0])),
+            self.graph_conv.append(EdgeConv(Sequential(Linear(2 * input_size, config["gnn_layers"][0])),
                                             aggr=config["gnn_aggr"]))
             for i in np.arange(1, len(config["gnn_layers"])):
-                layer = EdgeConv(Sequential(Linear(2 *config["gnn_layers"][i - 1], config["gnn_layers"][i])), aggr=config["gnn_aggr"])
+                layer = EdgeConv(Sequential(Linear(2 * config["gnn_layers"][i - 1], config["gnn_layers"][i])),
+                                 aggr=config["gnn_aggr"])
                 self.graph_conv.append(layer)
         elif config["gnn_type"] == "GCN_kipf":
             self.graph_conv.append(GCNConv(input_size, config["gnn_layers"][0]))
@@ -154,7 +167,9 @@ class GNN(Module):
             x = conv(x, edge_index)
             x = self.activation(x)
         return x
-#CLASSIFIER
+
+
+# CLASSIFIER
 class Classifier(Module):
     def __init__(self, config, input_size, output_dim):
         super().__init__()
@@ -169,36 +184,43 @@ class Classifier(Module):
         else:
             fc_list = [Linear(input_size, output_dim)]
         self.fc = Sequential(*fc_list)
+
     def forward(self, x):
         x = self.fc(x)
         return x
+
 
 class GiG(Module):
     def __init__(self, config):
         super().__init__()
         self.config = config
-        #node-level module
+        # node-level module
         self.node_level_module = NodeConvolution(config)
         input_size = config["node_layers"][-1]
-        #population-level module
+        # population-level module
         if config["population_level_module"] in ['LGL', 'LGLKL']:
             self.population_level_module = LGL(config, input_size)
         else:
             print("Please define the population-level module type: DGCNN, LGL, LGLKL")
-        #GNN
+        # GNN
         if len(config["gnn_layers"]) > 0:
             self.gnn = GNN(config, input_size)
             input_size = config["gnn_layers"][-1]
-        #classifier
+        # classifier
         if config["output_dim"] == 2:
             output_dim = config["output_dim"] - 1
         else:
             output_dim = config["output_dim"]
         self.classifier = Classifier(config, input_size, output_dim)
 
-
-
     def forward(self, data):
+        '''print("Inside GiG.forward")
+        print("Data.x shape:", data.x.shape)
+        print("Data.edge_index shape:", data.edge_index.shape)
+        '''
+        # Check tensor properties
+        assert torch.isnan(data.x).sum() == 0, "NaNs detected in data.x"
+        assert torch.isnan(data.edge_index).sum() == 0, "NaNs detected in edge_index"
         feature_matrix = self.node_level_module(data)
         x, edge_index, edge_weight, adj_matrix = self.population_level_module(feature_matrix)
         x = self.gnn(x, edge_index, edge_weight)
@@ -206,5 +228,3 @@ class GiG(Module):
         if self.config["output_dim"] == 2:
             x = x.view(-1)
         return x, feature_matrix, edge_index, edge_weight, adj_matrix
-
-
