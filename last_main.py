@@ -160,8 +160,8 @@ def train(model, train_loader, val_loader, config):
     device = config["device"]
     model = model.to(device)
     criterion = nn.CrossEntropyLoss()  # Multi-class classification
-    optimizer = optim.Adam(model.parameters(), lr=config["lr"], weight_decay=1e-4)
-    scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=5, verbose=True)  # 🔹 Reduce LR on plateau
+    optimizer = optim.Adam(model.parameters(), lr=config["lr"], weight_decay=5e-4)
+    scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=3, verbose=True)  # 🔹 Reduce LR on plateau
 
     #
     run_id = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -188,6 +188,7 @@ def train(model, train_loader, val_loader, config):
             # Compute loss (CrossEntropyLoss expects logits + class indices)
             loss = criterion(outputs, batch.y.long())
             loss.backward()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=5)
             optimizer.step()
             total_loss += loss.item()
 
@@ -254,7 +255,7 @@ if __name__ == "__main__":
     with open("./DataLast/corrected_datasets/test_shuffled_y.pkl", "rb") as f:
         test_dataset = pickle.load(f)
 
-    train_dataset = train_dataset[0:6400]
+
 
     # %%
     # Create DataLoaders
