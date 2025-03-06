@@ -7,8 +7,8 @@ from torch_geometric.nn import GraphConv, EdgeConv, GCNConv, GATConv, SAGEConv
 from torch_geometric.utils import dense_to_sparse
 from torch_geometric.nn.models.basic_gnn import GIN
 from torch.nn import Dropout
-from torch.nn import BatchNorm1d
-
+from torch.nn import BatchNorm1d, LayerNorm
+from torch_geometric.nn import GlobalAttention
 try:
     from torch_cluster import knn
 except ImportError:
@@ -29,42 +29,57 @@ class NodeConvolution(Module):
         super().__init__()
         self.config = config
         self.conv_list = ModuleList()
+        self.batch_norms = ModuleList()  # BatchNorm layers
         self.projection_layers = ModuleList()
-        projection_dims = [config["num_node_features"]] + config.get("projection_layers", [128, 128])
+
+        projection_dims = [config["num_node_features"]] + config.get("projection_layers", [256, 256])
         for i in range(len(projection_dims) - 1):
             self.projection_layers.append(Linear(projection_dims[i], projection_dims[i + 1]))
             self.projection_layers.append(LeakyReLU(negative_slope=0.01))
             self.projection_layers.append(Dropout(p=0.5))
 
-        if self.config["node_level_module"] == "GIN":
+        if self.config["node_level_module"] == "GAT":
+            self.conv_list.append(GATConv(
+                in_channels=projection_dims[-1],
+                out_channels=config["node_layers"][0],
+                heads=2,
+                concat=False,
+                dropout=0.5
+            ))
+            self.batch_norms.append(LayerNorm(config["node_layers"][0]))  # Add BatchNorm
+
+            for i in range(1, len(config["node_layers"])):
+                self.conv_list.append(GATConv(
+                    in_channels=config["node_layers"][i - 1],
+                    out_channels=config["node_layers"][i] // 4,
+                    heads=4,
+                    concat=True,
+                    dropout=0.5
+                ))
+                self.batch_norms.append(LayerNorm(config["node_layers"][i]))  # Add BatchNorm
+
+            self.activation = LeakyReLU(negative_slope=0.01)
+
+        elif self.config["node_level_module"] == "GraphConv":
+            self.conv_list.append(GraphConv(projection_dims[-1], config["node_layers"][0]))
+            self.batch_norms.append(LayerNorm(config["node_layers"][0]))  #  Add BatchNorm
+
+            for i in range(1, len(config["node_layers"])):
+                self.conv_list.append(GraphConv(config["node_layers"][i - 1], config["node_layers"][i]))
+                self.batch_norms.append(LayerNorm(config["node_layers"][i]))  # add BatchNorm
+
+            self.activation = LeakyReLU(negative_slope=0.01)
+        elif self.config["node_level_module"] == "GIN":
             self.conv_list.append(GIN(
                 in_channels=projection_dims[-1],
                 hidden_channels=config["node_layers"][0],
-                num_layers=self.config["node_level_hidden_layers_number"],
+                num_layers=self.config["node_level_hidden_layers_number"][0],
                 out_channels=config["node_layers"][-1]
             ))
         elif self.config["node_level_module"] == "GraphConv":
             self.conv_list.append(GraphConv(projection_dims[-1], config["node_layers"][0]))
             for i in range(1, len(config["node_layers"])):
                 self.conv_list.append(GraphConv(config["node_layers"][i - 1], config["node_layers"][i]))
-            self.activation = LeakyReLU(negative_slope=0.01)
-
-        elif self.config["node_level_module"] == "GAT":
-            self.conv_list.append(GATConv(
-                in_channels=projection_dims[-1],
-                out_channels=config["node_layers"][0],  #
-                heads=2,  # Multi-head attention
-                concat=False,  # Concatenate outputs from heads
-                dropout=0.3  # Apply dropout to attention weights
-            ))
-            for i in range(1, len(config["node_layers"])):
-                self.conv_list.append(GATConv(
-                    in_channels=config["node_layers"][i - 1],
-                    out_channels=config["node_layers"][i] // 4,  # Divide output dim among heads
-                    heads=4,
-                    concat=True,
-                    dropout=0.3
-                ))
             self.activation = LeakyReLU(negative_slope=0.01)
 
         else:
@@ -74,39 +89,34 @@ class NodeConvolution(Module):
             self.pooling = global_add_pool
         elif config["pooling"] == 'mean':
             self.pooling = global_mean_pool
+        elif config["pooling"] == 'global_att':
+            self.pooling = GlobalAttention(gate_nn=Sequential(Linear(config["node_layers"][-1], 1), LeakyReLU()))
         else:
             print("This version is not implemented.")
 
     def forward(self, data):
         edge_index = data.edge_index
         x = data.x.float()
+        residual_x = x  # Save input for residual connection
 
         for layer in self.projection_layers:
             x = layer(x)
 
-        if self.config["node_level_module"] == "GAT":
-            if 'edge_attr' in data:
-                edge_attr_proj = torch.mean(data.edge_attr, dim=1, keepdim=True)  # Aggregate edge attributes
-                x = self.conv_list[0](x, edge_index, edge_attr_proj)
+        for i, conv in enumerate(self.conv_list):
+            new_x = conv(x, edge_index)
+            new_x = self.batch_norms[i](new_x)  # Apply BatchNorm
+            new_x = self.activation(new_x)
+
+            #  Residual Connection
+            if new_x.shape == residual_x.shape:
+                x = new_x + residual_x
             else:
-                x = self.conv_list[0](x, edge_index)
+                x = new_x
 
-        elif 'edge_weights' in data and self.config["node_level_module"] != "GIN":
-            x = self.conv_list[0](x, edge_index, data.edge_weights)
-        elif 'edge_attr' in data and self.config["node_level_module"] != "GIN":
-            x = self.conv_list[0](x, edge_index, torch.argmax(data.edge_attr, dim=1))
-        else:
-            x = self.conv_list[0](x, edge_index)
-        if self.config["node_level_module"] != "GIN":
-            x = self.activation(x)
+            residual_x = x  # Update residual for next layer
 
-        for conv in self.conv_list[1:]:
-            x = conv(x, edge_index)
-            if self.config["node_level_module"] != "GIN":
-                x = self.activation(x)
         x = self.pooling(x, data.batch)
         return x
-
 
 # POPULATION-LEVEL MODULES
 # cdgm
@@ -232,37 +242,31 @@ class GiG(Module):
     def __init__(self, config):
         super().__init__()
         self.config = config
-        # node-level module
         self.node_level_module = NodeConvolution(config)
         input_size = config["node_layers"][-1]
-        # population-level module
+
+        # Population-Level Module
         if config["population_level_module"] in ['LGL', 'LGLKL']:
             self.population_level_module = LGL(config, input_size)
         else:
-            print("Please define the population-level module type: DGCNN, LGL, LGLKL")
+            raise ValueError("Please define a valid population-level module: LGL or LGLKL")
+
         # GNN
         if len(config["gnn_layers"]) > 0:
             self.gnn = GNN(config, input_size)
             input_size = config["gnn_layers"][-1]
-        # classifier
-        if config["output_dim"] == 2:
-            output_dim = config["output_dim"] - 1
-        else:
-            output_dim = config["output_dim"]
+
+        # Classifier
+        output_dim = config["output_dim"] - 1 if config["output_dim"] == 2 else config["output_dim"]
         self.classifier = Classifier(config, input_size, output_dim)
 
     def forward(self, data):
-        '''print("Inside GiG.forward")
-        print("Data.x shape:", data.x.shape)
-        print("Data.edge_index shape:", data.edge_index.shape)
-        '''
-        # Check tensor properties
-        assert torch.isnan(data.x).sum() == 0, "NaNs detected in data.x"
-        assert torch.isnan(data.edge_index).sum() == 0, "NaNs detected in edge_index"
-        feature_matrix = self.node_level_module(data)
-        x, edge_index, edge_weight, adj_matrix = self.population_level_module(feature_matrix)
-        x = self.gnn(x, edge_index, edge_weight)
-        x = self.classifier(x)
-        if self.config["output_dim"] == 2:
-            x = x.view(-1)
-        return x, feature_matrix, edge_index, edge_weight, adj_matrix
+        # Extract features at different levels
+        feature_matrix = self.node_level_module(data)  # Node-Level Features
+        x, edge_index, edge_weight, adj_matrix = self.population_level_module(feature_matrix)  # Graph-Level Features
+        x = self.gnn(x, edge_index, edge_weight)  # Final Graph Embeddings
+
+        # Return features for contrastive loss + classification output
+        classification_output = self.classifier(x)
+
+        return classification_output, x, feature_matrix, edge_index, edge_weight, adj_matrix  # 🔹 Return features for contrastive loss
