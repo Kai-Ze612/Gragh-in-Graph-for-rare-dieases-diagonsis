@@ -14,24 +14,28 @@ import torch.nn.functional as F
 
 
 class ContrastiveLoss(nn.Module):
-    def __init__(self, temperature=0.2):
+    def __init__(self, temperature=0.5):
         super().__init__()
         self.temperature = temperature
 
     def forward(self, features):
-        # Normalize embeddings
-        features = F.normalize(features, p=2, dim=1)
-
-        # Compute similarity matrix
+        features = F.normalize(features, p=2, dim=1)  # Normalize embeddings
         similarity_matrix = torch.matmul(features, features.T) / self.temperature
 
-        # Create labels: identity matrix as ground truth (1 for self-similarity)
-        labels = torch.eye(similarity_matrix.size(0), device=features.device)
+        # Mask out self-similarity
+        mask = torch.eye(similarity_matrix.size(0), device=features.device).bool()
+        similarity_matrix.masked_fill_(mask, -1)  # Mask self-similarity
 
-        # Compute cross-entropy loss
-        contrastive_loss = F.cross_entropy(similarity_matrix, labels)
+        # 🔹 Select hardest negatives (max similarity excluding diagonal)
+        hardest_negatives = similarity_matrix.max(dim=1).values.unsqueeze(1)  # Shape: [batch_size, 1]
+
+        # 🔹 Compute contrastive loss using hardest negatives
+        labels = torch.arange(features.size(0), device=features.device)
+        logits = torch.cat([similarity_matrix, hardest_negatives], dim=1)  # Add hardest negatives
+        contrastive_loss = F.cross_entropy(logits, labels)
 
         return contrastive_loss
+
 
 
 def optimized_collate_fn(batch):
@@ -188,8 +192,8 @@ def train(model, train_loader, val_loader, config):
 
     device = config["device"]
     model = model.to(device)
-    criterion = nn.CrossEntropyLoss()  # Classification loss
-    contrastive_loss_fn = ContrastiveLoss(temperature=0.5)  # Similarity loss
+    criterion = nn.CrossEntropyLoss()  # Classification Loss
+    contrastive_loss_fn = ContrastiveLoss(temperature=0.1)  # Stronger Contrastive Loss
 
     optimizer = optim.AdamW(model.parameters(), lr=config["lr"], weight_decay=5e-4)
     scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=3, verbose=True)
@@ -207,17 +211,17 @@ def train(model, train_loader, val_loader, config):
             batch = batch.to(device)
             optimizer.zero_grad()
 
-            # Forward pass
-            outputs, features, _, _, _ = model(batch)  # features will be used for contrastive loss
+            # 🔹 Forward Pass: Get features earlier in the network
+            outputs, graph_features, node_features, _, _, _ = model(batch)
+
+            # Compute contrastive loss (on node features)
+            cl_loss = contrastive_loss_fn(node_features)
 
             # Compute classification loss
             class_loss = criterion(outputs, batch.y.long())
 
-            # Compute contrastive loss
-            cl_loss = contrastive_loss_fn(features)
-
-            # Weighted sum of both losses
-            loss = 0.4 * class_loss + 0.6 * cl_loss  # 0.6 scales contrastive loss contribution
+            # Weighted loss
+            loss = 0.4 * class_loss + 0.6 * cl_loss  # 🔥 Contrastive loss is more dominant
 
             loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=5)
@@ -236,7 +240,7 @@ def train(model, train_loader, val_loader, config):
         avg_cl_loss = total_cl_loss / len(train_loader)
         train_acc = correct_train / total_train
 
-        val_loss, val_acc, val_cl_loss = evaluate(model, val_loader, criterion, device)
+        val_loss, val_acc, val_cl_loss = evaluate(model, val_loader, criterion, contrastive_loss_fn, device)
 
         wandb.log({"epoch": epoch + 1,
                    "train_loss": avg_train_loss,
@@ -256,25 +260,23 @@ def train(model, train_loader, val_loader, config):
     print(f"🏁 Final model saved as: {final_model_path}")
     wandb.finish()
 
-
-def evaluate(model, val_loader, criterion, device):
+def evaluate(model, val_loader, criterion, contrastive_loss_fn, device):
     model.eval()
     total_loss, total_cl_loss, total_class_loss = 0.0, 0.0, 0.0
     correct, total = 0, 0
-    contrastive_loss_fn = ContrastiveLoss(temperature=0.5)  # Use the same contrastive loss
 
     with torch.no_grad():
         for batch in val_loader:
             batch = batch.to(device)
 
-            # Forward pass
-            outputs, features, _, _, _ = model(batch)  # features for contrastive loss
+            # 🔹 Forward Pass
+            outputs, graph_features, node_features, _, _, _ = model(batch)
 
             # Compute classification loss
             class_loss = criterion(outputs, batch.y.long())
 
-            # Compute contrastive loss
-            cl_loss = contrastive_loss_fn(features)
+            # Compute contrastive loss (on node features)
+            cl_loss = contrastive_loss_fn(node_features)
 
             # Total loss = classification loss + contrastive loss
             loss = 0.4 * class_loss + 0.6 * cl_loss
