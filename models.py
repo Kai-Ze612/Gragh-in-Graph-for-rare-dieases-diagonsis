@@ -99,6 +99,13 @@ class NodeConvolution(Module):
         x = data.x.float()
         residual_x = x  # Save input for residual connection
 
+
+        if x.dim() == 1:
+            x = x.unsqueeze(0)  # Convert (N,) -> (1, N)
+
+        if x.shape[1] != self.projection_layers[0].in_features:
+            x = x[:, :self.projection_layers[0].in_features]  # Trim extra dimensions
+
         for layer in self.projection_layers:
             x = layer(x)
 
@@ -113,7 +120,8 @@ class NodeConvolution(Module):
             else:
                 x = new_x
 
-            residual_x = x  # Update residual for next layer
+            residual_x = x.clone().detach()  # Ensure x is properly detached for residuals
+            # Update residual for next layer
 
         x = self.pooling(x, data.batch)
         return x
