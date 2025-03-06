@@ -9,7 +9,7 @@ import pickle
 import os
 import datetime
 from torch.optim.lr_scheduler import ReduceLROnPlateau
-
+from torch.optim import AdamW
 
 def optimized_collate_fn(batch):
     batch_size = len(batch)
@@ -75,18 +75,20 @@ config = {
     "input_dim": 128,  # Dimension of node embeddings
     "output_dim": 2405,  # Multi-class classification
     "node_level_module": "GAT",  # "GraphConv", "GIN"
-    "projection_layers": [256, 128],
+    "projection_layers": [128, 128],
     "node_layers": [64],  # Hidden layers for node-level processing
     "pooling": "add",  # "add" or "mean"
-    "population_level_module": "LGL",  # "LGL", "LGLKL"
-    "population_layers": [128, 128],  # Layers for population-level module
+    "population_level_module": "LGLKL",  # "LGL", "LGLKL"
+    "mu": 0.5,  # Initial mean for KL loss
+    "sigma": 0.5,  # Initial standard deviation for KL loss
+    "population_layers": [128],  # Layers for population-level module
     "temp": 1.0,  # Learnable temperature
     "theta": 1.0,  # Learnable threshold
-    "gnn_type": "GAT",  # "GraphConv", "GAT", "SAGEConv", etc.
-    "gnn_layers": [128, 128],  # GNN layers
+    "gnn_type": "GraphConv",  # "GraphConv", "GAT", "SAGEConv", etc.
+    "gnn_layers": [128],  # GNN layers
 
     "gnn_aggr": "mean",
-    "classifier_layers": [128, 64, 2405],  # 2405 classes
+    "classifier_layers": [128, 2405],  # 2405 classes
     "batch_size": 128,
     "epochs": 20,
     "lr": 2e-3,
@@ -165,7 +167,9 @@ def train(model, train_loader, val_loader, config):
     device = config["device"]
     model = model.to(device)
     criterion = nn.CrossEntropyLoss()  # Multi-class classification
-    optimizer = optim.Adam(model.parameters(), lr=config["lr"], weight_decay=5e-4)
+    #optimizer = optim.Adam(model.parameters(), lr=config["lr"], weight_decay=5e-4)
+    #optimizer = Lamb(model.parameters(), lr=config["lr"], weight_decay=5e-4)
+    optimizer = AdamW(model.parameters(), lr=config["lr"], weight_decay=5e-4)
     scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=3, verbose=True)  # 🔹 Reduce LR on plateau
 
     #
