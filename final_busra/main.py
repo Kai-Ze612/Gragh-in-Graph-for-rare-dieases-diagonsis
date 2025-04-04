@@ -255,13 +255,13 @@ def evaluate(model, val_loader, criterion, device):
 if __name__ == "__main__":
     # Load train, validation, and test datasets
 
-    with open("../DataLast/corrected_datasets/train_shuffled_y.pkl", "rb") as f:
+    with open("./DataLast/corrected_datasets/train_shuffled_y.pkl", "rb") as f:
         train_dataset = pickle.load(f)
 
-    with open("../DataLast/corrected_datasets/val_shuffled_y.pkl", "rb") as f:
+    with open("./DataLast/corrected_datasets/val_shuffled_y.pkl", "rb") as f:
         val_dataset = pickle.load(f)
 
-    with open("../DataLast/corrected_datasets/test_shuffled_y.pkl", "rb") as f:
+    with open("./DataLast/corrected_datasets/test_shuffled_y.pkl", "rb") as f:
         test_dataset = pickle.load(f)
 
 
