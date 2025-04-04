@@ -10,33 +10,6 @@ import os
 import datetime
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torch.optim import AdamW
-import torch.nn.functional as F
-
-
-class ContrastiveLoss(nn.Module):
-    def __init__(self, temperature=0.5):
-        super().__init__()
-        self.temperature = temperature
-
-    def forward(self, features):
-        features = F.normalize(features, p=2, dim=1)  # Normalize embeddings
-        similarity_matrix = torch.matmul(features, features.T) / self.temperature
-
-        # Mask out self-similarity
-        mask = torch.eye(similarity_matrix.size(0), device=features.device).bool()
-        similarity_matrix.masked_fill_(mask, -1)  # Mask self-similarity
-
-        # 🔹 Select hardest negatives (max similarity excluding diagonal)
-        hardest_negatives = similarity_matrix.max(dim=1).values.unsqueeze(1)  # Shape: [batch_size, 1]
-
-        # 🔹 Compute contrastive loss using hardest negatives
-        labels = torch.arange(features.size(0), device=features.device)
-        logits = torch.cat([similarity_matrix, hardest_negatives], dim=1)  # Add hardest negatives
-        contrastive_loss = F.cross_entropy(logits, labels)
-
-        return contrastive_loss
-
-
 
 def optimized_collate_fn(batch):
     batch_size = len(batch)
@@ -53,6 +26,7 @@ def optimized_collate_fn(batch):
 
     x = torch.cat([data.x for data in batch], dim=0)  # Keep node-level x
     y = torch.cat([data.y for data in batch], dim=0)  # Ensure y is also batched correctly
+
 
     edge_index = torch.cat(adjusted_edge_indices, dim=1)
 
@@ -97,11 +71,11 @@ def optimized_collate_fn(batch):
 
 
 config = {
-    "num_node_features": 256,
-    "input_dim": 256,  # Dimension of node embeddings
+    "num_node_features": 128,
+    "input_dim": 128,  # Dimension of node embeddings
     "output_dim": 2405,  # Multi-class classification
     "node_level_module": "GAT",  # "GraphConv", "GIN"
-    "projection_layers": [256, 256],
+    "projection_layers": [128, 128],
     "node_layers": [64],  # Hidden layers for node-level processing
     "pooling": "add",  # "add" or "mean"
     "population_level_module": "LGLKL",  # "LGL", "LGLKL"
@@ -150,9 +124,9 @@ class GeneClassifier(nn.Module):
             # Ensure values are within embedding range
         data.original_ids = torch.clamp(data.original_ids, min=0, max=self.global_node_embedding.num_embeddings - 1)
 
-        # print("Original IDs shape:", data.original_ids.shape)
-        # print("Min ID:", data.original_ids.min().item(), "Max ID:", data.original_ids.max().item())
-        # print("Embedding Num:", self.global_node_embedding.num_embeddings)
+        #print("Original IDs shape:", data.original_ids.shape)
+        #print("Min ID:", data.original_ids.min().item(), "Max ID:", data.original_ids.max().item())
+        #print("Embedding Num:", self.global_node_embedding.num_embeddings)
         # Apply embedding layer (Shape: [batch_size, max_length, embedding_dim])
         embedded_x = self.global_node_embedding(data.original_ids)
         #  Flatten original_ids: it should match the number of nodes
@@ -169,8 +143,8 @@ class GeneClassifier(nn.Module):
         data.x = data.x.mean(dim=1)  # Shape: [batch_size, embedding_dim]
 
         # print("Batch size:", data.batch.max().item() + 1)  # Should print batch size
-        # print("Total nodes in batch:", total_nodes_in_batch)
-        # print("x shape after expansion:", data.x.shape)  # Should match edge_index
+        #print("Total nodes in batch:", total_nodes_in_batch)
+        #print("x shape after expansion:", data.x.shape)  # Should match edge_index
 
         # Aggregate embeddings across `max_length`
 
@@ -192,126 +166,107 @@ def train(model, train_loader, val_loader, config):
 
     device = config["device"]
     model = model.to(device)
-    criterion = nn.CrossEntropyLoss()  # Classification Loss
-    contrastive_loss_fn = ContrastiveLoss(temperature=0.1)  # Stronger Contrastive Loss
+    criterion = nn.CrossEntropyLoss()  # Multi-class classification
+    #optimizer = optim.Adam(model.parameters(), lr=config["lr"], weight_decay=5e-4)
+    #optimizer = Lamb(model.parameters(), lr=config["lr"], weight_decay=5e-4)
+    optimizer = AdamW(model.parameters(), lr=config["lr"], weight_decay=5e-4)
+    scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=3, verbose=True)  # 🔹 Reduce LR on plateau
 
-    optimizer = optim.AdamW(model.parameters(), lr=config["lr"], weight_decay=5e-4)
-    scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=3, verbose=True)
-
+    #
     run_id = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     run_dir = f"last_models/run_{run_id}"
     os.makedirs(run_dir, exist_ok=True)
 
     for epoch in range(config["epochs"]):
         model.train()
-        total_loss, total_cl_loss, total_class_loss = 0.0, 0.0, 0.0
-        correct_train, total_train = 0, 0
+        total_loss = 0.0
+        correct_train, total_train = 0, 0  #  training accuracy
 
         for batch in train_loader:
             batch = batch.to(device)
+            # print("Batch size:", batch.batch.max().item() + 1)  #
+            # print("Max edge_index:", batch.edge_index.max().item(), "Num nodes:", batch.x.shape[0])
+            assert batch.batch.max().item() + 1 == config["batch_size"], "Mismatch in batch size!"
+
+            # print("number of nodes", batch.x.shape[0])
+            # print("Max edge_index:", batch.edge_index.max().item(), "Num nodes:", batch.x.shape[0])
+            assert batch.edge_index.max().item() < batch.x.shape[0], "Edge index out of bounds!"
             optimizer.zero_grad()
+            outputs, _, _, _, _ = model(batch)
 
-            # 🔹 Forward Pass: Get features earlier in the network
-            outputs, graph_features, node_features, _, _, _ = model(batch)
-
-            # Compute contrastive loss (on node features)
-            cl_loss = contrastive_loss_fn(node_features)
-
-            # Compute classification loss
-            class_loss = criterion(outputs, batch.y.long())
-
-            # Weighted loss
-            loss = 0.4 * class_loss + 0.6 * cl_loss  # 🔥 Contrastive loss is more dominant
-
+            # Compute loss (CrossEntropyLoss expects logits + class indices)
+            loss = criterion(outputs, batch.y.long())
             loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=5)
             optimizer.step()
-
             total_loss += loss.item()
-            total_class_loss += class_loss.item()
-            total_cl_loss += cl_loss.item()
 
             preds = torch.argmax(outputs, dim=1)
             correct_train += (preds == batch.y).sum().item()
             total_train += batch.y.size(0)
 
         avg_train_loss = total_loss / len(train_loader)
-        avg_class_loss = total_class_loss / len(train_loader)
-        avg_cl_loss = total_cl_loss / len(train_loader)
-        train_acc = correct_train / total_train
+        train_acc = correct_train / total_train  # Compute training accuracy
+        val_loss, val_acc = evaluate(model, val_loader, criterion, device)
+        '''
+        #  Save model at every epoch inside the unique run directory
+        model_path = f"{run_dir}/model_epoch_{epoch+1:03d}.pth"
+        torch.save(model.state_dict(), model_path)
+        print(f" Model saved at: {model_path}")
+        '''
 
-        val_loss, val_acc, val_cl_loss = evaluate(model, val_loader, criterion, contrastive_loss_fn, device)
-
-        wandb.log({"epoch": epoch + 1,
-                   "train_loss": avg_train_loss,
-                   "train_acc": train_acc,
-                   "val_loss": val_loss,
-                   "val_acc": val_acc,
-                   "contrastive_loss": avg_cl_loss,
-                   "val_contrastive_loss": val_cl_loss})  # Log validation contrastive loss
+        scheduler.step(val_loss)
+        wandb.log({"epoch": epoch+1, "train_loss": avg_train_loss, "train_acc": train_acc,
+                   "val_loss": val_loss, "val_acc": val_acc})
 
         print(f"Epoch [{epoch + 1}/{config['epochs']}], "
               f"Train Loss: {avg_train_loss:.4f}, Train Acc: {train_acc:.4f}, "
-              f"Val Loss: {val_loss:.4f}, Val Acc: {val_acc:.4f}, "
-              f"Contrastive Loss: {avg_cl_loss:.4f}, Val Contrastive Loss: {val_cl_loss:.4f}")
+              f"Val Loss: {val_loss:.4f}, Val Acc: {val_acc:.4f}")
 
     final_model_path = f"{run_dir}/final_model.pth"
     torch.save(model.state_dict(), final_model_path)
     print(f"🏁 Final model saved as: {final_model_path}")
     wandb.finish()
 
-def evaluate(model, val_loader, criterion, contrastive_loss_fn, device):
+
+def evaluate(model, val_loader, criterion, device):
     model.eval()
-    total_loss, total_cl_loss, total_class_loss = 0.0, 0.0, 0.0
-    correct, total = 0, 0
+    total_loss, correct, total = 0.0, 0, 0
 
     with torch.no_grad():
         for batch in val_loader:
             batch = batch.to(device)
+            outputs, _, _, _, _ = model(batch)
 
-            # 🔹 Forward Pass
-            outputs, graph_features, node_features, _, _, _ = model(batch)
-
-            # Compute classification loss
-            class_loss = criterion(outputs, batch.y.long())
-
-            # Compute contrastive loss (on node features)
-            cl_loss = contrastive_loss_fn(node_features)
-
-            # Total loss = classification loss + contrastive loss
-            loss = 0.4 * class_loss + 0.6 * cl_loss
-
+            # Compute loss
+            loss = criterion(outputs, batch.y.long())
             total_loss += loss.item()
-            total_class_loss += class_loss.item()
-            total_cl_loss += cl_loss.item()
 
-            # Compute accuracy
+            # Get predicted class (argmax)
             preds = torch.argmax(outputs, dim=1)
             correct += (preds == batch.y).sum().item()
             total += batch.y.size(0)
 
     avg_loss = total_loss / len(val_loader)
-    avg_class_loss = total_class_loss / len(val_loader)
-    avg_cl_loss = total_cl_loss / len(val_loader)
     accuracy = correct / total
-
-    return avg_loss, accuracy, avg_cl_loss  # Return contrastive loss too
+    return avg_loss, accuracy
 
 
 if __name__ == "__main__":
     # Load train, validation, and test datasets
 
-    with open("./DataLast/corrected_datasets/train_shuffled_y.pkl", "rb") as f:
+    with open("../DataLast/corrected_datasets/train_shuffled_y.pkl", "rb") as f:
         train_dataset = pickle.load(f)
 
-    with open("./DataLast/corrected_datasets/val_shuffled_y.pkl", "rb") as f:
+    with open("../DataLast/corrected_datasets/val_shuffled_y.pkl", "rb") as f:
         val_dataset = pickle.load(f)
 
-    with open("./DataLast/corrected_datasets/test_shuffled_y.pkl", "rb") as f:
+    with open("../DataLast/corrected_datasets/test_shuffled_y.pkl", "rb") as f:
         test_dataset = pickle.load(f)
 
+
+
     # %%
-    train_dataset = train_dataset[0:20000]
     # Create DataLoaders
     train_loader = DataLoader(train_dataset, batch_size=config["batch_size"], shuffle=True,
                               collate_fn=optimized_collate_fn)

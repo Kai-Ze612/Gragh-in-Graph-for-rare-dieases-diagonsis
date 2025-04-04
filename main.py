@@ -1,8 +1,7 @@
 import torch
-from torch_geometric.loader import DataLoader
 from torch.optim import Adam
 from sklearn.metrics import accuracy_score
-from models import GiG
+from final_busra.models import GiG
 from datasets.dataloader import DataLoader
 import pickle
 import os

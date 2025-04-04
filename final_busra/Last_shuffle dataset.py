@@ -74,9 +74,9 @@ def correct_dataset(train_path, val_path, test_path, output_dir):
 
 
 
-train_file = './Graph Outputs/train_pg_subgraph.pkl'
-val_file = './Graph Outputs/val_pg_subgraph.pkl'
-test_file = './Graph Outputs/test_pg_subgraph.pkl'
+train_file = '../Graph Outputs/train_pg_subgraph.pkl'
+val_file = '../Graph Outputs/val_pg_subgraph.pkl'
+test_file = '../Graph Outputs/test_pg_subgraph.pkl'
 output_directory = './DataLast/corrected_datasets'
 
 

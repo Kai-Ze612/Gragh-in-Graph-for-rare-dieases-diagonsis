@@ -1,15 +1,12 @@
 import pickle
 import torch
 import wandb
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import Dataset
 from pytorch_lightning import LightningModule, Trainer, LightningDataModule
 from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping
 from torch.nn import functional as F
-from torch_geometric.nn import GCNConv
-from torch_geometric.data import Data, Batch
 from torch_geometric.loader.dataloader import DataLoader as GeoDataLoader
-from models import LGL
-from models import GiG
+from final_busra.models import GiG
 
 from pytorch_lightning.loggers import WandbLogger
 
